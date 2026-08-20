@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Summaries.API/Summaries.API.csproj" />
+    <Project Path="src/Summaries.Application/Summaries.Application.csproj" />
+    <Project Path="src/Summaries.Domain/Summaries.Domain.csproj" />
+    <Project Path="src/Summaries.Infrastructure/Summaries.Infrastructure.csproj" />
+    <Project Path="src/Summaries.Persistence/Summaries.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Summaries.API.IntegrationTests/Summaries.API.IntegrationTests.csproj" />
+    <Project Path="tests/Summaries.Application.UnitTests/Summaries.Application.UnitTests.csproj" />
+    <Project Path="tests/Summaries.ArchitectureTests/Summaries.ArchitectureTests.csproj" />
+    <Project Path="tests/Summaries.Domain.UnitTests/Summaries.Domain.UnitTests.csproj" />
+    <Project Path="tests/Summaries.Infrastructure.IntegrationTests/Summaries.Infrastructure.IntegrationTests.csproj" />
+    <Project Path="tests/Summaries.Persistence.IntegrationTests/Summaries.Persistence.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Summaries.DatabaseSeeder/Summaries.DatabaseSeeder.csproj" />
+  </Folder>
+</Solution>

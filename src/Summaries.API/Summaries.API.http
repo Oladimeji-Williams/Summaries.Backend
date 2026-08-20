@@ -1,0 +1,6 @@
+@Summaries.API_HostAddress = http://localhost:5079
+
+GET {{Summaries.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
