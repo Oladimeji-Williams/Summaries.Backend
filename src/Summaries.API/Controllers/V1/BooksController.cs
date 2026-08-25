@@ -12,10 +12,12 @@ using Summaries.Application.Features.Books.Commands.StartReadingBookCommand;
 using Summaries.Application.Features.Books.Queries.GetAllBooksQuery;
 using Summaries.Application.Features.Books.Queries.GetBookByIdQuery;
 using Summaries.Application.Features.Books.Shared.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Summaries.API.Controllers.V1;
 
 [ApiVersion(1.0)]
+[Authorize]
 public sealed class BooksController(
     ISender sender)
     : V1ControllerBase
