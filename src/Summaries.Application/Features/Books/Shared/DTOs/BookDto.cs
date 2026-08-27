@@ -7,7 +7,10 @@ public sealed record BookDto(
     string Title,
     string Author,
     string Description,
+    ReadingStatusDto? MyReadingStatus);
+
+public sealed record ReadingStatusDto(
+    BookStatus Status,
     decimal? Rating,
     DateTimeOffset? DateStarted,
-    DateTimeOffset? DateRead,
-    BookStatus Status);
+    DateTimeOffset? DateRead);

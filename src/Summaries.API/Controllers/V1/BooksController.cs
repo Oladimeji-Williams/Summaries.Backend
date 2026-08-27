@@ -107,41 +107,39 @@ public sealed class BooksController(
         return Success(result.Value);
     }
 
+
     [HttpPut("{id:int}")]
-    [ProducesResponseType(
-        StatusCodes.Status204NoContent)]
-    [ProducesResponseType(
-        typeof(ApiResponse<object>),
-        StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(
-        typeof(ApiResponse<object>),
-        StatusCodes.Status404NotFound)]
-    [ProducesResponseType(
-        typeof(ApiResponse<object>),
-        StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateBook(
-        int id,
-        [FromBody] UpdateBookRequest request,
-        CancellationToken cancellationToken)
+        int id, [FromBody] UpdateBookRequest request, CancellationToken cancellationToken)
     {
-        var command = new UpdateBookCommand(
-            id,
-            request.Title,
-            request.Author,
-            request.Description,
-            request.Rating);
-
-        var result = await _sender.Send(
-            command,
-            cancellationToken);
-
+        var command = new UpdateBookCommand(id, request.Title, request.Author, request.Description);
+        var result = await _sender.Send(command, cancellationToken);
         if (result.IsFailure)
         {
             return Failure(result);
         }
-
         return NoContent();
     }
+
+    [HttpPost("{id:int}/mark-as-read")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> MarkBookAsRead(
+        int id, [FromBody] MarkAsReadRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new MarkBookAsReadCommand(id, request.Rating), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
 
     [HttpPost("{id:int}/start-reading")]
     [ProducesResponseType(
@@ -166,28 +164,6 @@ public sealed class BooksController(
         return NoContent();
     }
 
-    [HttpPost("{id:int}/mark-as-read")]
-    [ProducesResponseType(
-        StatusCodes.Status204NoContent)]
-    [ProducesResponseType(
-        typeof(ApiResponse<object>),
-        StatusCodes.Status404NotFound)]
-    [ProducesResponseType(
-        typeof(ApiResponse<object>),
-        StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> MarkBookAsRead(
-        int id,
-        CancellationToken cancellationToken)
-    {
-        var result = await _sender.Send(
-            new MarkBookAsReadCommand(id),
-            cancellationToken);
-        if (result.IsFailure)
-        {
-            return Failure(result);
-        }
-        return NoContent();
-    }
 
     [HttpDelete("{id:int}")]
     [ProducesResponseType(

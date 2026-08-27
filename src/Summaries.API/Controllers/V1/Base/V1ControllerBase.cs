@@ -2,13 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Summaries.API.Contracts.Common;
 using Summaries.Application.Common.Primitives;
-using Summaries.Application.Features.Books.Shared.Errors;
 
 namespace Summaries.API.Controllers.V1.Base;
 
 [ApiVersion(1.0)]
 [Route("api/v{version:apiVersion}/[controller]")]
-public abstract class V1ControllerBase : Controllers.Base.ApiControllerBase
+public abstract class V1ControllerBase
+    : Controllers.Base.ApiControllerBase
 {
     protected IActionResult Success<T>(T data)
     {
@@ -48,19 +48,22 @@ public abstract class V1ControllerBase : Controllers.Base.ApiControllerBase
     private IActionResult Failure(
         IReadOnlyList<Error> errors)
     {
-        var response = new ApiResponse<object>(
-            Success: false,
-            Data: null,
-            Errors: errors
-                .Select(error => new ApiError(
-                    error.Code,
-                    error.Message,
-                    error.Type.ToString()))
-                .ToList());
+        var response =
+            new ApiResponse<object>(
+                Success: false,
+                Data: null,
+                Errors: errors
+                    .Select(error =>
+                        new ApiError(
+                            error.Code,
+                            error.Message,
+                            error.Type.ToString()))
+                    .ToList());
 
-        var errorType = errors
-            .Select(error => error.Type)
-            .FirstOrDefault();
+        var errorType =
+            errors
+                .Select(error => error.Type)
+                .FirstOrDefault();
 
         return errorType switch
         {
@@ -79,13 +82,15 @@ public abstract class V1ControllerBase : Controllers.Base.ApiControllerBase
             ErrorType.Forbidden =>
                 new ObjectResult(response)
                 {
-                    StatusCode = StatusCodes.Status403Forbidden
+                    StatusCode =
+                        StatusCodes.Status403Forbidden
                 },
 
             _ =>
                 new ObjectResult(response)
                 {
-                    StatusCode = StatusCodes.Status500InternalServerError
+                    StatusCode =
+                        StatusCodes.Status500InternalServerError
                 }
         };
     }

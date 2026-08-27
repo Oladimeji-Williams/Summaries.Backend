@@ -9,6 +9,7 @@ public sealed class ApplicationDbContext(
     : DbContext(options)
 {
     public DbSet<Book> Books => Set<Book>();
+    public DbSet<BookReadingRecord> BookReadingRecords => Set<BookReadingRecord>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)

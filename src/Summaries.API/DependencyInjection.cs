@@ -1,4 +1,3 @@
-using Summaries.API.Authentication;
 using Summaries.API.Controllers;
 using Summaries.API.Cors;
 using Summaries.API.Versioning;
@@ -15,8 +14,6 @@ public static class DependencyInjection
         services.AddApiVersioningSetup();
         services.AddOpenApi();
         services.AddApiCors(configuration);
-        services.AddApiAuthentication(configuration);
-
         return services;
     }
 }
