@@ -6,6 +6,7 @@ using Summaries.Application.Abstractions.Authentication;
 using Summaries.Application.Common.Primitives;
 using Summaries.Application.Features.Authentication.Shared.Errors;
 using Summaries.Application.Features.Users.Shared.DTOs;
+using Summaries.Application.Features.Users.Shared.Errors;
 using Summaries.Infrastructure.Authentication;
 
 namespace Summaries.Infrastructure.Identity;
@@ -180,5 +181,87 @@ internal sealed class IdentityService(
         };
         await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<string?> GeneratePasswordResetTokenAsync(
+        string email, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null)
+        {
+            return null;
+        }
+        return await _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task<Result> ResetPasswordAsync(
+        string email, string token, string newPassword, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null)
+        {
+            // Same anti-enumeration reasoning as ForgotPasswordCommandHandler —
+            // don't reveal whether the account exists.
+            return Result.Failure(AuthErrors.PasswordResetFailed("Invalid token."));
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.PasswordResetFailed(errors));
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> ChangePasswordAsync(
+        Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(AuthErrors.ChangePasswordFailed("User not found."));
+        }
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.ChangePasswordFailed(errors));
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateProfileAsync(
+        Guid userId, string firstName, string lastName, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        user.FirstName = firstName.Trim();
+        user.LastName = lastName.Trim();
+        user.UpdatedAtUtc = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors)); // reuse: generic "identity op failed" shape
+        }
+
+        return Result.Success();
     }
 }

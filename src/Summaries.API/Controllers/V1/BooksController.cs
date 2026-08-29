@@ -25,6 +25,7 @@ public sealed class BooksController(
     private readonly ISender _sender = sender;
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(
         typeof(ApiResponse<BookDto>),
         StatusCodes.Status201Created)]
@@ -166,6 +167,7 @@ public sealed class BooksController(
 
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(
         StatusCodes.Status204NoContent)]
     [ProducesResponseType(

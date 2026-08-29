@@ -9,4 +9,7 @@ public static class UserErrors
 
     public static Error NotFound(Guid id) => new(
         "Users.NotFound", $"User with ID '{id}' was not found.", ErrorType.NotFound);
+
+    public static Error UpdateFailed(string details) => new(
+        "Users.UpdateFailed", details, ErrorType.Validation);
 }

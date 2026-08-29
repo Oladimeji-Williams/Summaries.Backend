@@ -28,4 +28,10 @@ public static class AuthErrors
         "Auth.RegistrationFailed",
         details,
         ErrorType.Validation);
+
+    public static Error PasswordResetFailed(string details) => new(
+        "Auth.PasswordResetFailed", details, ErrorType.Validation);
+
+    public static Error ChangePasswordFailed(string details) => new(
+        "Auth.ChangePasswordFailed", details, ErrorType.Validation);
 }
