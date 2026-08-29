@@ -12,4 +12,7 @@ public static class UserErrors
 
     public static Error UpdateFailed(string details) => new(
         "Users.UpdateFailed", details, ErrorType.Validation);
+
+    public static Error InvalidFile(string details) => new(
+        "Users.InvalidFile", details, ErrorType.Validation);
 }

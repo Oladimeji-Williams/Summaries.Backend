@@ -8,4 +8,5 @@ public sealed record AuthResultDto(
     Guid UserId,
     string Email,
     string DisplayName,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    string? AvatarUrl);

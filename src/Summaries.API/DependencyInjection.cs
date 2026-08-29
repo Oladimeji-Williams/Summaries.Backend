@@ -1,3 +1,5 @@
+using Summaries.API.Common.Urls;
+using Summaries.API.Contracts.Common;
 using Summaries.API.Controllers;
 using Summaries.API.Cors;
 using Summaries.API.Versioning;
@@ -14,6 +16,10 @@ public static class DependencyInjection
         services.AddApiVersioningSetup();
         services.AddOpenApi();
         services.AddApiCors(configuration);
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<IUrlBuilder, UrlBuilder>();
+
         return services;
     }
 }

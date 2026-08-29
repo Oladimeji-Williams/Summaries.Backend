@@ -5,4 +5,5 @@ public sealed record UserProfileDto(
     string Email,
     string FirstName,
     string LastName,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    string? AvatarUrl);

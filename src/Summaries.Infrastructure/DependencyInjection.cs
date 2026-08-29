@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Summaries.Application.Abstractions.Authentication;
+using Summaries.Application.Abstractions.Storage;
 using Summaries.Infrastructure.Authentication;
 using Summaries.Infrastructure.Identity;
+using Summaries.Infrastructure.Storage;
 
 namespace Summaries.Infrastructure;
 
@@ -32,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddAuthenticationConfiguration(configuration);
 
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
         return services;
     }
 }

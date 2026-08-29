@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Summaries.API.Contracts.Auth;
 using Summaries.API.Contracts.Common;
+using Summaries.API.Common;
 using Summaries.API.Controllers.V1.Base;
 using Summaries.Application.Features.Authentication.Commands.LoginCommand;
 using Summaries.Application.Features.Authentication.Commands.RefreshTokenCommand;
@@ -17,7 +18,7 @@ using Summaries.Application.Features.Authentication.Commands.ChangePassword;
 namespace Summaries.API.Controllers.V1;
 
 [ApiVersion(1.0)]
-public sealed class AuthController(ISender sender) : V1ControllerBase
+public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -52,7 +53,11 @@ public sealed class AuthController(ISender sender) : V1ControllerBase
         {
             return Failure(result);
         }
-        return Success(result.Value);
+        var response = result.Value! with
+        {
+            AvatarUrl = urlBuilder.ToAbsoluteUrl(result.Value!.AvatarUrl)
+        };
+        return Success(response);
     }
 
     [HttpPost("refresh")]

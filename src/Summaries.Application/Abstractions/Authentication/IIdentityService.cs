@@ -37,4 +37,6 @@ public interface IIdentityService
 
     Task<Result> UpdateProfileAsync(
         Guid userId, string firstName, string lastName, CancellationToken cancellationToken);
+
+    Task<Result> UpdateAvatarAsync(Guid userId, string avatarUrl, CancellationToken cancellationToken);
 }

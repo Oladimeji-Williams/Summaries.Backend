@@ -24,6 +24,6 @@ public sealed class LoginCommandHandler(IIdentityService identityService)
             new AuthResultDto(
                 result.AccessToken, result.RefreshToken,
                 result.AccessTokenExpiresAtUtc, result.RefreshTokenExpiresAtUtc,
-                result.UserId, result.Email, result.DisplayName, result.Roles));
+                result.UserId, result.Email, result.DisplayName, result.Roles, result.AvatarUrl));
     }
 }

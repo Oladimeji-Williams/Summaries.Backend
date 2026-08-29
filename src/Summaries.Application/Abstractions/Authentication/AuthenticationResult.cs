@@ -8,4 +8,5 @@ public sealed record AuthenticationResult(
     string RefreshToken,
     DateTime AccessTokenExpiresAtUtc,
     DateTime RefreshTokenExpiresAtUtc,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    string? AvatarUrl);

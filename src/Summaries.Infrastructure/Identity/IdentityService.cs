@@ -82,10 +82,11 @@ internal sealed class IdentityService(
         await StoreRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
         var accessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
+
         return new AuthenticationResult(
             user.Id, user.Email!, $"{user.FirstName} {user.LastName}",
             accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
-            roles.ToList());
+            roles.ToList(), user.AvatarUrl);
     }
 
     public async Task<AuthenticationResult?> RefreshTokenAsync(
@@ -115,8 +116,8 @@ internal sealed class IdentityService(
         var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
         return new AuthenticationResult(
             user.Id, user.Email!, $"{user.FirstName} {user.LastName}",
-            accessToken, newRefreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
-            roles.ToList());
+            accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
+            roles.ToList(), user.AvatarUrl);
     }
 
     public async Task<bool> RevokeRefreshTokenAsync(
@@ -135,6 +136,7 @@ internal sealed class IdentityService(
         return true;
     }
 
+
     public async Task<UserProfileDto?> GetProfileAsync(
         Guid userId, CancellationToken cancellationToken)
     {
@@ -143,7 +145,7 @@ internal sealed class IdentityService(
         {
             return null;
         }
-        return new UserProfileDto(user.Id, user.Email!, user.FirstName, user.LastName, user.CreatedAtUtc);
+        return new UserProfileDto(user.Id, user.Email!, user.FirstName, user.LastName, user.CreatedAtUtc, user.AvatarUrl);
     }
 
     public async Task<IReadOnlyList<UserProfileDto>> GetAllUsersAsync(
@@ -152,7 +154,7 @@ internal sealed class IdentityService(
         cancellationToken.ThrowIfCancellationRequested();
         return await _userManager.Users
             .OrderBy(u => u.Email)
-            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc))
+            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc, u.AvatarUrl))
             .ToListAsync(cancellationToken);
     }
 
@@ -163,7 +165,7 @@ internal sealed class IdentityService(
         var idList = userIds.Distinct().ToList();
         var users = await _userManager.Users
             .Where(u => idList.Contains(u.Id))
-            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc))
+            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc, u.AvatarUrl))
             .ToListAsync(cancellationToken);
         return users.ToDictionary(u => u.Id);
     }
@@ -260,6 +262,30 @@ internal sealed class IdentityService(
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             return Result.Failure(AuthErrors.RegistrationFailed(errors)); // reuse: generic "identity op failed" shape
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateAvatarAsync(
+        Guid userId, string avatarUrl, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        user.AvatarUrl = avatarUrl;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
         }
 
         return Result.Success();
