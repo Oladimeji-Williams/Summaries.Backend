@@ -1,5 +1,3 @@
-using Summaries.API.Contracts.Common;
-
 namespace Summaries.API.Common.Urls;
 
 public sealed class UrlBuilder(IHttpContextAccessor httpContextAccessor)

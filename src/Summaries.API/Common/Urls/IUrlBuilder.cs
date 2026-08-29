@@ -1,4 +1,4 @@
-namespace Summaries.API.Contracts.Common;
+namespace Summaries.API.Common.Urls;
 
 public interface IUrlBuilder
 {

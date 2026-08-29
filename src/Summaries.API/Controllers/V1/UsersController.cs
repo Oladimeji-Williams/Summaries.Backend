@@ -3,18 +3,20 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Summaries.API.Common.Urls;
 using Summaries.API.Contracts.Common;
 using Summaries.API.Controllers.V1.Base;
 using Summaries.Application.Features.Users.Commands.UpdateProfile;
 using Summaries.Application.Features.Users.Commands.UploadAvatar;
 using Summaries.Application.Features.Users.Queries.GetCurrentUser;
 using Summaries.Application.Features.Users.Shared.DTOs;
+using Summaries.Application.Features.Users.Commands.RemoveAvatar;
 
 namespace Summaries.API.Controllers.V1;
 
 [ApiVersion(1.0)]
 [Authorize]
-public sealed class UsersController(ISender sender) : V1ControllerBase
+public sealed class UsersController(ISender sender, IUrlBuilder urlBuilder) : V1ControllerBase
 {
     [HttpGet("me")]
     [ProducesResponseType(typeof(ApiResponse<UserProfileDto>), StatusCodes.Status200OK)]
@@ -26,7 +28,7 @@ public sealed class UsersController(ISender sender) : V1ControllerBase
         {
             return Failure(result);
         }
-        var profile = result.Value! with { AvatarUrl = ToAbsoluteUrl(result.Value!.AvatarUrl) };
+        var profile = result.Value! with { AvatarUrl = urlBuilder.ToAbsoluteUrl(result.Value!.AvatarUrl) };
         return Success(profile);
     }
 
@@ -58,16 +60,19 @@ public sealed class UsersController(ISender sender) : V1ControllerBase
         {
             return Failure(result);
         }
-        return Success(ToAbsoluteUrl(result.Value));
+        return Success(urlBuilder.ToAbsoluteUrl(result.Value));
     }
 
-    private string? ToAbsoluteUrl(string? relativeUrl)
+    [HttpDelete("me/avatar")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RemoveAvatar(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(relativeUrl))
+        var result = await sender.Send(new RemoveAvatarCommand(), cancellationToken);
+        if (result.IsFailure)
         {
-            return relativeUrl;
+            return Failure(result);
         }
-        var cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        return $"{Request.Scheme}://{Request.Host}{relativeUrl}?v={cacheBuster}";
+        return NoContent();
     }
 }

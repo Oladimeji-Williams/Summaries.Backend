@@ -8,6 +8,7 @@ using Summaries.Application.Features.Authentication.Shared.Errors;
 using Summaries.Application.Features.Users.Shared.DTOs;
 using Summaries.Application.Features.Users.Shared.Errors;
 using Summaries.Infrastructure.Authentication;
+using Summaries.Application.Abstractions.Storage;
 
 namespace Summaries.Infrastructure.Identity;
 
@@ -16,7 +17,8 @@ internal sealed class IdentityService(
     SignInManager<ApplicationUser> signInManager,
     ITokenService tokenService,
     ApplicationIdentityDbContext dbContext,
-    IOptions<JwtOptions> jwtOptions)
+    IOptions<JwtOptions> jwtOptions,
+    IFileStorageService fileStorage)
     : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -24,6 +26,7 @@ internal sealed class IdentityService(
     private readonly ITokenService _tokenService = tokenService;
     private readonly ApplicationIdentityDbContext _dbContext = dbContext;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly IFileStorageService _fileStorage = fileStorage;
 
     public async Task<Result<Guid>> RegisterAsync(
         string firstName, string lastName, string email, string password,
@@ -279,6 +282,34 @@ internal sealed class IdentityService(
         }
 
         user.AvatarUrl = avatarUrl;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            await _fileStorage.DeleteAsync(user.AvatarUrl, cancellationToken);
+        }
+
+        user.AvatarUrl = null;
         user.UpdatedAtUtc = DateTime.UtcNow;
 
         var result = await _userManager.UpdateAsync(user);

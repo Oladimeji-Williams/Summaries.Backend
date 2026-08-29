@@ -39,4 +39,6 @@ public interface IIdentityService
         Guid userId, string firstName, string lastName, CancellationToken cancellationToken);
 
     Task<Result> UpdateAvatarAsync(Guid userId, string avatarUrl, CancellationToken cancellationToken);
+
+    Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken);
 }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Summaries.API.Contracts.Auth;
 using Summaries.API.Contracts.Common;
-using Summaries.API.Common;
+using Summaries.API.Common.Urls;
 using Summaries.API.Controllers.V1.Base;
 using Summaries.Application.Features.Authentication.Commands.LoginCommand;
 using Summaries.Application.Features.Authentication.Commands.RefreshTokenCommand;
@@ -74,7 +74,11 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
         {
             return Failure(result);
         }
-        return Success(result.Value);
+        var response = result.Value! with
+        {
+            AvatarUrl = urlBuilder.ToAbsoluteUrl(result.Value!.AvatarUrl)
+        };
+        return Success(response);
     }
 
     [HttpPost("revoke")]
