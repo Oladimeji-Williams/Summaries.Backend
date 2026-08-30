@@ -139,16 +139,11 @@ internal sealed class IdentityService(
         return true;
     }
 
-
     public async Task<UserProfileDto?> GetProfileAsync(
         Guid userId, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
-        {
-            return null;
-        }
-        return new UserProfileDto(user.Id, user.Email!, user.FirstName, user.LastName, user.CreatedAtUtc, user.AvatarUrl);
+        return user?.ToDto();
     }
 
     public async Task<IReadOnlyList<UserProfileDto>> GetAllUsersAsync(
@@ -157,7 +152,7 @@ internal sealed class IdentityService(
         cancellationToken.ThrowIfCancellationRequested();
         return await _userManager.Users
             .OrderBy(u => u.Email)
-            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc, u.AvatarUrl))
+            .Select(u => u.ToDto())
             .ToListAsync(cancellationToken);
     }
 
@@ -168,7 +163,7 @@ internal sealed class IdentityService(
         var idList = userIds.Distinct().ToList();
         var users = await _userManager.Users
             .Where(u => idList.Contains(u.Id))
-            .Select(u => new UserProfileDto(u.Id, u.Email!, u.FirstName, u.LastName, u.CreatedAtUtc, u.AvatarUrl))
+            .Select(u => u.ToDto())
             .ToListAsync(cancellationToken);
         return users.ToDictionary(u => u.Id);
     }

@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Summaries.API.Controllers.V1;
 
-[ApiVersion(1.0)]
 [Authorize]
 public sealed class BooksController(
     ISender sender)

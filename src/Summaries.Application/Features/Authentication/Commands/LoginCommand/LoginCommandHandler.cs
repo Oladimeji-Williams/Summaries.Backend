@@ -3,6 +3,7 @@ using Summaries.Application.Abstractions.Authentication;
 using Summaries.Application.Common.Primitives;
 using Summaries.Application.Features.Authentication.Shared.DTOs;
 using Summaries.Application.Features.Authentication.Shared.Errors;
+using Summaries.Application.Features.Authentication.Shared.Mappings;
 
 namespace Summaries.Application.Features.Authentication.Commands.LoginCommand;
 
@@ -20,10 +21,6 @@ public sealed class LoginCommandHandler(IIdentityService identityService)
             return Result<AuthResultDto>.Failure(AuthErrors.InvalidCredentials());
         }
 
-        return Result<AuthResultDto>.Success(
-            new AuthResultDto(
-                result.AccessToken, result.RefreshToken,
-                result.AccessTokenExpiresAtUtc, result.RefreshTokenExpiresAtUtc,
-                result.UserId, result.Email, result.DisplayName, result.Roles, result.AvatarUrl));
+        return Result<AuthResultDto>.Success(result.ToDto());
     }
 }

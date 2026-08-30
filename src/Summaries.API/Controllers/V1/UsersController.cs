@@ -14,7 +14,6 @@ using Summaries.Application.Features.Users.Commands.RemoveAvatar;
 
 namespace Summaries.API.Controllers.V1;
 
-[ApiVersion(1.0)]
 [Authorize]
 public sealed class UsersController(ISender sender, IUrlBuilder urlBuilder) : V1ControllerBase
 {

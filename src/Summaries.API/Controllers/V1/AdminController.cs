@@ -10,7 +10,6 @@ using Summaries.Application.Features.Admin.Queries.GetUserReadingHistory;
 
 namespace Summaries.API.Controllers.V1;
 
-[ApiVersion(1.0)]
 [Authorize(Roles = "Admin")]
 public sealed class AdminController(ISender sender) : V1ControllerBase
 {

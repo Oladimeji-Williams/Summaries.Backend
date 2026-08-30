@@ -17,7 +17,6 @@ using Summaries.Application.Features.Authentication.Commands.ChangePassword;
 
 namespace Summaries.API.Controllers.V1;
 
-[ApiVersion(1.0)]
 public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1ControllerBase
 {
     [HttpPost("register")]
