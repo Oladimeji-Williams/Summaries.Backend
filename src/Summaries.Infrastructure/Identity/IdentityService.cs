@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Summaries.Application.Abstractions.Authentication;
+using Summaries.Application.Abstractions.Storage;
 using Summaries.Application.Common.Primitives;
 using Summaries.Application.Features.Authentication.Shared.Errors;
 using Summaries.Application.Features.Users.Shared.DTOs;
 using Summaries.Application.Features.Users.Shared.Errors;
 using Summaries.Infrastructure.Authentication;
-using Summaries.Application.Abstractions.Storage;
 
 namespace Summaries.Infrastructure.Identity;
 
@@ -85,7 +85,6 @@ internal sealed class IdentityService(
         await StoreRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
         var accessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
         var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
-
         return new AuthenticationResult(
             user.Id, user.Email!, $"{user.FirstName} {user.LastName}",
             accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
@@ -119,7 +118,7 @@ internal sealed class IdentityService(
         var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
         return new AuthenticationResult(
             user.Id, user.Email!, $"{user.FirstName} {user.LastName}",
-            accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
+            accessToken, newRefreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
             roles.ToList(), user.AvatarUrl);
     }
 
@@ -168,19 +167,76 @@ internal sealed class IdentityService(
         return users.ToDictionary(u => u.Id);
     }
 
-    private async Task StoreRefreshTokenAsync(
-        Guid userId, string refreshToken, CancellationToken cancellationToken)
+    public async Task<Result> UpdateProfileAsync(
+        Guid userId, string firstName, string lastName, string? phoneNumber,
+        string? address, string? city, string? country, CancellationToken cancellationToken)
     {
-        var refreshTokenEntity = new RefreshToken
+        cancellationToken.ThrowIfCancellationRequested();
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            TokenHash = RefreshTokenHasher.Hash(refreshToken),
-            CreatedAtUtc = DateTime.UtcNow,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays)
-        };
-        await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        user.FirstName = firstName.Trim();
+        user.LastName = lastName.Trim();
+        user.PhoneNumber = phoneNumber;
+        user.Address = address;
+        user.City = city;
+        user.Country = country;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateAvatarAsync(
+        Guid userId, string avatarUrl, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+        user.AvatarUrl = avatarUrl;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+        return Result.Success();
+    }
+
+    public async Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            await _fileStorage.DeleteAsync(user.AvatarUrl, cancellationToken);
+        }
+        user.AvatarUrl = null;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+        return Result.Success();
     }
 
     public async Task<string?> GeneratePasswordResetTokenAsync(
@@ -204,18 +260,14 @@ internal sealed class IdentityService(
         var user = await _userManager.FindByEmailAsync(normalizedEmail);
         if (user is null)
         {
-            // Same anti-enumeration reasoning as ForgotPasswordCommandHandler —
-            // don't reveal whether the account exists.
             return Result.Failure(AuthErrors.PasswordResetFailed("Invalid token."));
         }
-
         var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             return Result.Failure(AuthErrors.PasswordResetFailed(errors));
         }
-
         return Result.Success();
     }
 
@@ -223,97 +275,32 @@ internal sealed class IdentityService(
         Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
             return Result.Failure(AuthErrors.ChangePasswordFailed("User not found."));
         }
-
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             return Result.Failure(AuthErrors.ChangePasswordFailed(errors));
         }
-
         return Result.Success();
     }
 
-    public async Task<Result> UpdateProfileAsync(
-        Guid userId, string firstName, string lastName, CancellationToken cancellationToken)
+    private async Task StoreRefreshTokenAsync(
+        Guid userId, string refreshToken, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
+        var refreshTokenEntity = new RefreshToken
         {
-            return Result.Failure(UserErrors.NotFound(userId));
-        }
-
-        user.FirstName = firstName.Trim();
-        user.LastName = lastName.Trim();
-        user.UpdatedAtUtc = DateTime.UtcNow;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            return Result.Failure(AuthErrors.RegistrationFailed(errors)); // reuse: generic "identity op failed" shape
-        }
-
-        return Result.Success();
-    }
-
-    public async Task<Result> UpdateAvatarAsync(
-        Guid userId, string avatarUrl, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
-        {
-            return Result.Failure(UserErrors.NotFound(userId));
-        }
-
-        user.AvatarUrl = avatarUrl;
-        user.UpdatedAtUtc = DateTime.UtcNow;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            return Result.Failure(AuthErrors.RegistrationFailed(errors));
-        }
-
-        return Result.Success();
-    }
-
-    public async Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
-        {
-            return Result.Failure(UserErrors.NotFound(userId));
-        }
-
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            await _fileStorage.DeleteAsync(user.AvatarUrl, cancellationToken);
-        }
-
-        user.AvatarUrl = null;
-        user.UpdatedAtUtc = DateTime.UtcNow;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            return Result.Failure(AuthErrors.RegistrationFailed(errors));
-        }
-
-        return Result.Success();
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TokenHash = RefreshTokenHasher.Hash(refreshToken),
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays)
+        };
+        await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

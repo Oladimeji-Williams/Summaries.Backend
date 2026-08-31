@@ -7,4 +7,9 @@ public sealed record UpdateBookCommand(
     int Id,
     string Title,
     string Author,
-    string Description) : IRequest<Result>;
+    string Description,
+    string? Isbn,
+    string? Publisher,
+    int? PublishedYear,
+    string? Genre,
+    int? PageCount) : IRequest<Result>;

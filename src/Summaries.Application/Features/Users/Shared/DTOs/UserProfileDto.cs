@@ -6,4 +6,9 @@ public sealed record UserProfileDto(
     string FirstName,
     string LastName,
     DateTime CreatedAtUtc,
-    string? AvatarUrl);
+    string? AvatarUrl,
+    string? PhoneNumber,
+    string? Address,
+    string? City,
+    string? Country
+);

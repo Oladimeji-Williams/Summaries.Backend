@@ -116,7 +116,9 @@ public sealed class BooksController(
     public async Task<IActionResult> UpdateBook(
         int id, [FromBody] UpdateBookRequest request, CancellationToken cancellationToken)
     {
-        var command = new UpdateBookCommand(id, request.Title, request.Author, request.Description);
+        var command = new UpdateBookCommand(
+            id, request.Title, request.Author, request.Description,
+            request.Isbn, request.Publisher, request.PublishedYear, request.Genre, request.PageCount);
         var result = await _sender.Send(command, cancellationToken);
         if (result.IsFailure)
         {

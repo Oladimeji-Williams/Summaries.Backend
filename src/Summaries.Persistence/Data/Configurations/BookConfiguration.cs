@@ -17,5 +17,8 @@ public sealed class BookConfiguration : IEntityTypeConfiguration<Book>
         builder.Property(book => book.ModifiedAt);
         builder.Property(book => book.DeletedAt);
         builder.Property(book => book.IsDeleted).IsRequired();
+        builder.Property(book => book.Isbn).HasMaxLength(20);
+        builder.Property(book => book.Publisher).HasMaxLength(200);
+        builder.Property(book => book.Genre).HasMaxLength(100);
     }
 }

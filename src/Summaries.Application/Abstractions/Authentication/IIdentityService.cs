@@ -27,6 +27,14 @@ public interface IIdentityService
     Task<IReadOnlyDictionary<Guid, UserProfileDto>> GetUsersByIdsAsync(
         IEnumerable<Guid> userIds, CancellationToken cancellationToken);
 
+    Task<Result> UpdateProfileAsync(
+        Guid userId, string firstName, string lastName, string? phoneNumber,
+        string? address, string? city, string? country, CancellationToken cancellationToken);
+
+    Task<Result> UpdateAvatarAsync(Guid userId, string avatarUrl, CancellationToken cancellationToken);
+
+    Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<string?> GeneratePasswordResetTokenAsync(string email, CancellationToken cancellationToken);
 
     Task<Result> ResetPasswordAsync(
@@ -34,11 +42,4 @@ public interface IIdentityService
 
     Task<Result> ChangePasswordAsync(
         Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
-
-    Task<Result> UpdateProfileAsync(
-        Guid userId, string firstName, string lastName, CancellationToken cancellationToken);
-
-    Task<Result> UpdateAvatarAsync(Guid userId, string avatarUrl, CancellationToken cancellationToken);
-
-    Task<Result> RemoveAvatarAsync(Guid userId, CancellationToken cancellationToken);
 }

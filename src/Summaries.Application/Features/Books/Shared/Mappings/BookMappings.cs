@@ -12,6 +12,11 @@ public static class BookMappings
             book.Title,
             book.Author,
             book.Description,
+            book.Isbn,
+            book.Publisher,
+            book.PublishedYear,
+            book.Genre,
+            book.PageCount,
             record is null
                 ? null
                 : new ReadingStatusDto(record.Status, record.Rating, record.DateStarted, record.DateRead));

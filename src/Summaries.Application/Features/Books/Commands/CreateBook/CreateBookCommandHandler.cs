@@ -20,7 +20,16 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository)
             return Result<BookDto>.Failure(BookErrors.AlreadyExists(request.Title));
         }
 
-        var book = new Book(request.Title, request.Author, request.Description);
+        var book = new Book(
+            request.Title,
+            request.Author,
+            request.Description,
+            request.Isbn,
+            request.Publisher,
+            request.PublishedYear,
+            request.Genre,
+            request.PageCount);
+
         await bookRepository.AddAsync(book, cancellationToken);
 
         return Result<BookDto>.Success(book.ToDto(null));

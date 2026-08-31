@@ -22,7 +22,16 @@ public sealed class UpdateBookCommandHandler(IBookRepository bookRepository)
             return Result.Failure(BookErrors.AlreadyExists(request.Title));
         }
 
-        book.Update(request.Title, request.Author, request.Description);
+        book.Update(
+            request.Title,
+            request.Author,
+            request.Description,
+            request.Isbn,
+            request.Publisher,
+            request.PublishedYear,
+            request.Genre,
+            request.PageCount);
+
         await bookRepository.UpdateAsync(book, cancellationToken);
 
         return Result.Success();

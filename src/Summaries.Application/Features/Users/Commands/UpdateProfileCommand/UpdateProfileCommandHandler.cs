@@ -18,6 +18,8 @@ public sealed class UpdateProfileCommandHandler(
         }
 
         return await identityService.UpdateProfileAsync(
-            currentUser.UserId.Value, request.FirstName, request.LastName, cancellationToken);
+            currentUser.UserId.Value, request.FirstName, request.LastName,
+            request.PhoneNumber, request.Address, request.City, request.Country,
+            cancellationToken);
     }
 }

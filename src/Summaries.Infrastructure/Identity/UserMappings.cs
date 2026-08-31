@@ -12,6 +12,11 @@ internal static class UserMappings
             user.FirstName,
             user.LastName,
             user.CreatedAtUtc,
-            user.AvatarUrl);
+            user.AvatarUrl,
+            user.PhoneNumber,
+            user.Address,
+            user.City,
+            user.Country
+        );
     }
 }

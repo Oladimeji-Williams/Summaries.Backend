@@ -8,4 +8,8 @@ public sealed record CreateBookCommand(
     string Title,
     string Author,
     string Description,
-    decimal? Rating) : IRequest<Result<BookDto>>;
+    string? Isbn,
+    string? Publisher,
+    int? PublishedYear,
+    string? Genre,
+    int? PageCount) : IRequest<Result<BookDto>>;

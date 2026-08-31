@@ -7,7 +7,13 @@ public sealed record BookDto(
     string Title,
     string Author,
     string Description,
-    ReadingStatusDto? MyReadingStatus);
+    string? Isbn,
+    string? Publisher,
+    int? PublishedYear,
+    string? Genre,
+    int? PageCount,
+    ReadingStatusDto? MyReadingStatus
+);
 
 public sealed record ReadingStatusDto(
     BookStatus Status,
