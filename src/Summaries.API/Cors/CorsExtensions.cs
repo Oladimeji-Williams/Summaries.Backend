@@ -20,8 +20,8 @@ public static class CorsExtensions
             {
                 policy
                     .WithOrigins(allowedOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
+                    .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                    .WithHeaders("Content-Type", "Authorization")
                     .AllowCredentials();
             });
         });

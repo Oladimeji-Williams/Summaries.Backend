@@ -2,6 +2,7 @@ using MediatR;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Summaries.API.Contracts.Auth;
 using Summaries.API.Contracts.Common;
 using Summaries.API.Common.Urls;
@@ -14,6 +15,7 @@ using Summaries.Application.Features.Authentication.Shared.DTOs;
 using Summaries.Application.Features.Authentication.Commands.ForgotPassword;
 using Summaries.Application.Features.Authentication.Commands.ResetPassword;
 using Summaries.Application.Features.Authentication.Commands.ChangePassword;
+using Summaries.API.Common.RateLimiting;
 
 namespace Summaries.API.Controllers.V1;
 
@@ -21,6 +23,7 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
 {
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [ProducesResponseType(typeof(ApiResponse<Guid>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -40,6 +43,7 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [ProducesResponseType(typeof(ApiResponse<AuthResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(
@@ -99,6 +103,7 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword(
         [FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)

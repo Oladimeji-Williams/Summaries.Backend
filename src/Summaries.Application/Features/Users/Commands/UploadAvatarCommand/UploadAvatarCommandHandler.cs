@@ -9,7 +9,8 @@ namespace Summaries.Application.Features.Users.Commands.UploadAvatar;
 public sealed class UploadAvatarCommandHandler(
     ICurrentUser currentUser,
     IIdentityService identityService,
-    IFileStorageService fileStorage)
+    IFileStorageService fileStorage,
+    IImageValidator imageValidator)
     : IRequestHandler<UploadAvatarCommand, Result<string>>
 {
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -36,6 +37,13 @@ public sealed class UploadAvatarCommandHandler(
         {
             return Result<string>.Failure(
                 UserErrors.InvalidFile("Image must be 2MB or smaller."));
+        }
+
+        var isValidImage = await imageValidator.IsValidImageAsync(request.Content, cancellationToken);
+        if (!isValidImage)
+        {
+            return Result<string>.Failure(
+                UserErrors.InvalidFile("The uploaded file is not a valid image."));
         }
 
         var extension = request.ContentType switch

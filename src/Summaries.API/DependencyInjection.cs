@@ -1,3 +1,4 @@
+using Summaries.API.Common.RateLimiting;
 using Summaries.API.Common.Urls;
 using Summaries.API.Controllers;
 using Summaries.API.Cors;
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddApiVersioningSetup();
         services.AddOpenApi();
         services.AddApiCors(configuration);
+        services.AddApiRateLimiting();
         services.AddHttpContextAccessor();
         services.AddScoped<IUrlBuilder, UrlBuilder>();
         return services;

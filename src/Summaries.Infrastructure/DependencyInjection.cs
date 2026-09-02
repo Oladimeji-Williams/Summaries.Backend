@@ -33,8 +33,8 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddAuthenticationConfiguration(configuration);
-
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IImageValidator, ImageValidator>();
         return services;
     }
 }
