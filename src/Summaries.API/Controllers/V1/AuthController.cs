@@ -104,19 +104,17 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ForgotPassword(
         [FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
+        var result = await sender.Send(
+            new ForgotPasswordCommand(request.Email, request.ResetUrlBase), cancellationToken);
         if (result.IsFailure)
         {
             return Failure(result);
         }
-        // DEV ONLY: returning the token directly so the flow is testable without
-        // an email sender. Replace with a real email send + generic ack response
-        // before any real deployment — never return this token over the wire in prod.
-        return Success(result.Value);
+        return NoContent();
     }
 
     [HttpPost("reset-password")]

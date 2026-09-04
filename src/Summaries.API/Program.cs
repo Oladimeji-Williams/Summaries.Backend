@@ -6,6 +6,8 @@ using Summaries.Persistence;
 using Summaries.Infrastructure.Identity;
 using Summaries.API.Common.Security;
 
+DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddApplication();

@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Resend;
 using Summaries.Application.Abstractions.Authentication;
 using Summaries.Application.Abstractions.Storage;
 using Summaries.Infrastructure.Authentication;
 using Summaries.Infrastructure.Identity;
 using Summaries.Infrastructure.Storage;
+using Summaries.Infrastructure.Email;
+using Summaries.Application.Abstractions.Email;
+
 
 namespace Summaries.Infrastructure;
 
@@ -26,6 +30,14 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationIdentityDbContext>(options =>
             options.UseSqlServer(connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory_Identity")));
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddHttpClient<IResend, ResendClient>();
+        services.Configure<ResendClientOptions>(o =>
+        {
+            o.ApiToken = configuration["Email:ApiKey"]
+                ?? throw new InvalidOperationException("Email:ApiKey is not configured.");
+        });
+        services.AddScoped<IEmailSender, ResendEmailSender>();
 
         services.AddHttpContextAccessor();
         services.AddIdentityConfiguration();
