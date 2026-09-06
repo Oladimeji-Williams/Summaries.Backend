@@ -46,6 +46,12 @@ public sealed class UploadAvatarCommandHandler(
                 UserErrors.InvalidFile("The uploaded file is not a valid image."));
         }
 
+        var profile = await identityService.GetProfileAsync(currentUser.UserId.Value, cancellationToken);
+        if (profile is null)
+        {
+            return Result<string>.Failure(UserErrors.NotFound(currentUser.UserId.Value));
+        }
+
         var extension = request.ContentType switch
         {
             "image/jpeg" => ".jpg",
@@ -53,7 +59,8 @@ public sealed class UploadAvatarCommandHandler(
             "image/webp" => ".webp",
             _ => ".jpg",
         };
-        var fileName = $"{currentUser.UserId.Value:N}{extension}";
+        var safeEmail = SanitizeForPublicId(profile.Email);
+        var fileName = $"{safeEmail}{extension}";
 
         var avatarUrl = await fileStorage.SaveAsync(
             request.Content, fileName, request.ContentType, cancellationToken);
@@ -67,5 +74,12 @@ public sealed class UploadAvatarCommandHandler(
         }
 
         return Result<string>.Success(avatarUrl);
+    }
+
+    private static string SanitizeForPublicId(string email)
+    {
+        // Cloudinary public IDs allow letters, numbers, underscores, hyphens.
+        // "@" and "." need replacing to stay filesystem/URL-safe.
+        return email.Trim().ToLowerInvariant().Replace("@", "_at_").Replace(".", "_");
     }
 }

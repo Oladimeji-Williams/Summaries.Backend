@@ -7,7 +7,8 @@ namespace Summaries.Application.Features.Authentication.Commands.ForgotPassword;
 
 public sealed class ForgotPasswordCommandHandler(
     IIdentityService identityService,
-    IEmailSender emailSender)
+    IEmailSender emailSender,
+    TimeProvider timeProvider)
     : IRequestHandler<ForgotPasswordCommand, Result>
 {
     public async Task<Result> Handle(
@@ -27,9 +28,16 @@ public sealed class ForgotPasswordCommandHandler(
                 $"?email={Uri.EscapeDataString(request.Email)}" +
                 $"&token={Uri.EscapeDataString(token)}";
 
+            // TimeProvider gives us the current UTC time.
+            // Convert it to West Africa Time (UTC+1) for display.
+            var sentAt = timeProvider
+                .GetUtcNow()
+                .ToOffset(TimeSpan.FromHours(1));
+
             await emailSender.SendPasswordResetAsync(
                 request.Email,
                 resetLink,
+                sentAt,
                 cancellationToken);
         }
 

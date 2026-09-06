@@ -18,7 +18,11 @@ public static class DependencyInjection
         services.AddApiCors(configuration);
         services.AddApiRateLimiting();
         services.AddHttpContextAccessor();
+
+        services.AddSingleton(TimeProvider.System);
+
         services.AddScoped<IUrlBuilder, UrlBuilder>();
+
         return services;
     }
 }

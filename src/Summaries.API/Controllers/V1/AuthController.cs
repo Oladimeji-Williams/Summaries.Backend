@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Summaries.API.Contracts.Auth;
 using Summaries.API.Contracts.Common;
-using Summaries.API.Common.Urls;
 using Summaries.API.Controllers.V1.Base;
 using Summaries.Application.Features.Authentication.Commands.LoginCommand;
 using Summaries.Application.Features.Authentication.Commands.RefreshTokenCommand;
@@ -19,7 +18,7 @@ using Summaries.API.Common.RateLimiting;
 
 namespace Summaries.API.Controllers.V1;
 
-public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1ControllerBase
+public sealed class AuthController(ISender sender) : V1ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -51,16 +50,15 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
         CancellationToken cancellationToken)
     {
         var command = new LoginCommand(request.Email, request.Password);
+
         var result = await sender.Send(command, cancellationToken);
+
         if (result.IsFailure)
         {
             return Failure(result);
         }
-        var response = result.Value! with
-        {
-            AvatarUrl = urlBuilder.ToAbsoluteUrl(result.Value!.AvatarUrl)
-        };
-        return Success(response);
+
+        return Success(result.Value);
     }
 
     [HttpPost("refresh")]
@@ -72,16 +70,15 @@ public sealed class AuthController(ISender sender, IUrlBuilder urlBuilder) : V1C
         CancellationToken cancellationToken)
     {
         var command = new RefreshTokenCommand(request.RefreshToken);
+
         var result = await sender.Send(command, cancellationToken);
+
         if (result.IsFailure)
         {
             return Failure(result);
         }
-        var response = result.Value! with
-        {
-            AvatarUrl = urlBuilder.ToAbsoluteUrl(result.Value!.AvatarUrl)
-        };
-        return Success(response);
+
+        return Success(result.Value);
     }
 
     [HttpPost("revoke")]

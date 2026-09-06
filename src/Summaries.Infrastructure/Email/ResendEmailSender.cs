@@ -4,16 +4,21 @@ using Summaries.Application.Abstractions.Email;
 
 namespace Summaries.Infrastructure.Email;
 
-internal sealed class ResendEmailSender(IResend resendClient, IOptions<EmailOptions> options) : IEmailSender
+internal sealed class ResendEmailSender(
+    IResend resendClient,
+    IOptions<EmailOptions> emailOptions,
+    IOptions<BrandingOptions> brandingOptions)
+    : IEmailSender
 {
-    private readonly EmailOptions _options = options.Value;
+    private readonly EmailOptions _emailOptions = emailOptions.Value;
+    private readonly BrandingOptions _brandingOptions = brandingOptions.Value;
 
     public async Task SendAsync(
         string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
     {
         var message = new EmailMessage
         {
-            From = $"{_options.FromName} <{_options.FromAddress}>",
+            From = $"{_emailOptions.FromName} <{_emailOptions.FromAddress}>",
             Subject = subject,
             HtmlBody = htmlBody,
         };
@@ -23,9 +28,18 @@ internal sealed class ResendEmailSender(IResend resendClient, IOptions<EmailOpti
     }
 
     public Task SendPasswordResetAsync(
-        string toEmail, string resetLink, CancellationToken cancellationToken)
+        string toEmail, string resetLink, DateTimeOffset sentAt, CancellationToken cancellationToken)
     {
-        var html = EmailTemplates.PasswordReset(resetLink);
+        var html = EmailTemplates.PasswordReset(resetLink, _brandingOptions.LogoUrl, sentAt);
         return SendAsync(toEmail, "Reset your Summaries password", html, cancellationToken);
+    }
+
+    public Task SendNotificationAsync(
+        string toEmail, string subject, string title, string message,
+        string? actionUrl, string? actionLabel, DateTimeOffset sentAt, CancellationToken cancellationToken)
+    {
+        var html = EmailTemplates.Notification(
+            _brandingOptions.LogoUrl, title, message, actionUrl, actionLabel, sentAt);
+        return SendAsync(toEmail, subject, html, cancellationToken);
     }
 }
