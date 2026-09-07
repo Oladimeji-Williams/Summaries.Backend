@@ -17,4 +17,6 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     public DateTime? UpdatedAtUtc { get; set; }
 
     public string? AvatarUrl { get; set; }
+
+    public DateTime? LastLoginNotificationSentAtUtc { get; set; }
 }

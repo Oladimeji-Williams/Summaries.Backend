@@ -3,12 +3,11 @@
 public interface ITokenService
 {
     string GenerateAccessToken(
-        Guid userId,
-        string email,
-        IEnumerable<string> roles,
-        IEnumerable<string> permissions);
+        Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions);
 
-    Task<string> GenerateRefreshTokenAsync(
-        Guid userId,
-        CancellationToken cancellationToken);
+    Task<string> GenerateRefreshTokenAsync(Guid userId, CancellationToken cancellationToken);
+
+    string GenerateTwoFactorToken(Guid userId);
+
+    Guid? ValidateTwoFactorToken(string token);
 }

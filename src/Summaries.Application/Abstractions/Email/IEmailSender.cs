@@ -10,4 +10,7 @@ public interface IEmailSender
     Task SendNotificationAsync(
         string toEmail, string subject, string title, string message,
         string? actionUrl, string? actionLabel, DateTimeOffset sentAt, CancellationToken cancellationToken);
+
+    Task SendEmailConfirmationAsync(
+        string toEmail, string confirmLink, DateTimeOffset sentAt, CancellationToken cancellationToken);
 }

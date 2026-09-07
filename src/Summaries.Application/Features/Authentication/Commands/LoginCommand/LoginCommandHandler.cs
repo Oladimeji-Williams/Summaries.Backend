@@ -16,41 +16,61 @@ public sealed class LoginCommandHandler(
     ILogger<LoginCommandHandler> logger)
     : IRequestHandler<LoginCommand, Result<AuthResultDto>>
 {
+    private static readonly TimeSpan NotificationSuppressionWindow = TimeSpan.FromMinutes(15);
+
     public async Task<Result<AuthResultDto>> Handle(
         LoginCommand request, CancellationToken cancellationToken)
     {
-        var result = await identityService.LoginAsync(
-            request.Email, request.Password, cancellationToken);
+        var outcome = await identityService.LoginAsync(request.Email, request.Password, cancellationToken);
 
-        if (result is null)
+        return outcome switch
         {
-            return Result<AuthResultDto>.Failure(AuthErrors.InvalidCredentials());
-        }
+            LoginOutcome.Success success => await HandleSuccessAsync(success.Result, cancellationToken),
+            LoginOutcome.RequiresTwoFactor twoFactor => Result<AuthResultDto>.Success(
+                new AuthResultDto(
+                    "", "", default, default, Guid.Empty, "", "", [], null,
+                    RequiresTwoFactor: true, TwoFactorToken: twoFactor.TwoFactorToken)),
+            LoginOutcome.EmailNotConfirmed => Result<AuthResultDto>.Failure(AuthErrors.EmailNotConfirmed()),
+            _ => Result<AuthResultDto>.Failure(AuthErrors.InvalidCredentials()),
+        };
+    }
 
-        await TrySendLoginNotificationAsync(result.Email, result.DisplayName, timeProvider.GetUtcNow(), cancellationToken);
-
+    private async Task<Result<AuthResultDto>> HandleSuccessAsync(
+        AuthenticationResult result, CancellationToken cancellationToken)
+    {
+        await TrySendThrottledLoginNotificationAsync(result, cancellationToken);
         return Result<AuthResultDto>.Success(result.ToDto());
     }
 
-    private async Task TrySendLoginNotificationAsync(
-        string email, string displayName, DateTimeOffset loggedInAtUtc, CancellationToken cancellationToken)
+    private async Task TrySendThrottledLoginNotificationAsync(
+        AuthenticationResult result, CancellationToken cancellationToken)
     {
         try
         {
-            var sentAt = loggedInAtUtc.ToOffset(TimeSpan.FromHours(1));
+            var now = timeProvider.GetUtcNow();
+            var lastSent = await identityService.GetLastLoginNotificationSentAtAsync(result.UserId, cancellationToken);
+
+            if (lastSent is not null && now - lastSent.Value < NotificationSuppressionWindow)
+            {
+                return;
+            }
+
+            var sentAt = now.ToOffset(TimeSpan.FromHours(1));
             await emailSender.SendNotificationAsync(
-                email,
+                result.Email,
                 "New login to your Summaries account",
                 "New login detected",
-                $"Hi {displayName}, we noticed a new login to your Summaries account.",
+                $"Hi {result.DisplayName}, we noticed a new login to your Summaries account.",
                 actionUrl: null,
                 actionLabel: null,
                 sentAt,
                 cancellationToken);
+
+            await identityService.RecordLoginNotificationSentAsync(result.UserId, now, cancellationToken);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to send login notification email to {Email}", email);
+            logger.LogWarning(ex, "Failed to send login notification email to {Email}", result.Email);
         }
     }
 }

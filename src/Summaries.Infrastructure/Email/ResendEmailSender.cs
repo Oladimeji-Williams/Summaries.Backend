@@ -42,4 +42,11 @@ internal sealed class ResendEmailSender(
             _brandingOptions.LogoUrl, title, message, actionUrl, actionLabel, sentAt);
         return SendAsync(toEmail, subject, html, cancellationToken);
     }
+
+    public Task SendEmailConfirmationAsync(
+        string toEmail, string confirmLink, DateTimeOffset sentAt, CancellationToken cancellationToken)
+    {
+        var html = EmailTemplates.EmailConfirmation(confirmLink, _brandingOptions.LogoUrl, sentAt);
+        return SendAsync(toEmail, "Confirm your Summaries email", html, cancellationToken);
+    }
 }

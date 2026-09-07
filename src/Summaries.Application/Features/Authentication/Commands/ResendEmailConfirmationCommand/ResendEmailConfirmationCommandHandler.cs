@@ -3,24 +3,19 @@ using Summaries.Application.Abstractions.Authentication;
 using Summaries.Application.Abstractions.Email;
 using Summaries.Application.Common.Primitives;
 
-namespace Summaries.Application.Features.Authentication.Commands.RegisterCommand;
+namespace Summaries.Application.Features.Authentication.Commands.ResendEmailConfirmation;
 
-public sealed class RegisterCommandHandler(
+public sealed class ResendEmailConfirmationCommandHandler(
     IIdentityService identityService,
     IEmailSender emailSender,
     TimeProvider timeProvider)
-    : IRequestHandler<RegisterCommand, Result<Guid>>
+    : IRequestHandler<ResendEmailConfirmationCommand, Result>
 {
-    public async Task<Result<Guid>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        ResendEmailConfirmationCommand request, CancellationToken cancellationToken)
     {
-        var result = await identityService.RegisterAsync(
-            string.Empty, string.Empty, request.Email, request.Password, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
+        // Always succeed regardless of whether the account exists or is
+        // already confirmed — same anti-enumeration stance as ForgotPassword.
         var token = await identityService.GenerateEmailConfirmationTokenAsync(request.Email, cancellationToken);
         if (token is not null)
         {
@@ -30,6 +25,6 @@ public sealed class RegisterCommandHandler(
             await emailSender.SendEmailConfirmationAsync(request.Email, confirmLink, sentAt, cancellationToken);
         }
 
-        return result;
+        return Result.Success();
     }
 }

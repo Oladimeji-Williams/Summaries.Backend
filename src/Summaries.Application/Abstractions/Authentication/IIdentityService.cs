@@ -9,8 +9,7 @@ public interface IIdentityService
         string firstName, string lastName, string email, string password,
         CancellationToken cancellationToken);
 
-    Task<AuthenticationResult?> LoginAsync(
-        string email, string password, CancellationToken cancellationToken);
+    Task<LoginOutcome> LoginAsync(string email, string password, CancellationToken cancellationToken);
 
     Task<AuthenticationResult?> RefreshTokenAsync(
         string refreshToken, CancellationToken cancellationToken);
@@ -18,11 +17,9 @@ public interface IIdentityService
     Task<bool> RevokeRefreshTokenAsync(
         string refreshToken, CancellationToken cancellationToken);
 
-    Task<UserProfileDto?> GetProfileAsync(
-        Guid userId, CancellationToken cancellationToken);
+    Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<UserProfileDto>> GetAllUsersAsync(
-        CancellationToken cancellationToken);
+    Task<IReadOnlyList<UserProfileDto>> GetAllUsersAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyDictionary<Guid, UserProfileDto>> GetUsersByIdsAsync(
         IEnumerable<Guid> userIds, CancellationToken cancellationToken);
@@ -42,4 +39,24 @@ public interface IIdentityService
 
     Task<Result> ChangePasswordAsync(
         Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
+
+    Task<string?> GenerateEmailConfirmationTokenAsync(string email, CancellationToken cancellationToken);
+
+    Task<Result> ConfirmEmailAsync(string email, string token, CancellationToken cancellationToken);
+
+    Task<DateTimeOffset?> GetLastLoginNotificationSentAtAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task RecordLoginNotificationSentAsync(
+        Guid userId, DateTimeOffset sentAtUtc, CancellationToken cancellationToken);
+
+    Task<Result<TwoFactorSetupResult>> BeginTwoFactorSetupAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<Result> ConfirmTwoFactorSetupAsync(Guid userId, string code, CancellationToken cancellationToken);
+
+    Task<Result> DisableTwoFactorAsync(Guid userId, string currentPassword, CancellationToken cancellationToken);
+
+    Task<bool> IsTwoFactorEnabledAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<LoginOutcome> VerifyTwoFactorCodeAsync(
+        string twoFactorToken, string code, CancellationToken cancellationToken);
 }

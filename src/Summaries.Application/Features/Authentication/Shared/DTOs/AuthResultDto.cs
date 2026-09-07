@@ -9,4 +9,6 @@ public sealed record AuthResultDto(
     string Email,
     string DisplayName,
     IReadOnlyList<string> Roles,
-    string? AvatarUrl);
+    string? AvatarUrl,
+    bool RequiresTwoFactor = false,
+    string? TwoFactorToken = null);

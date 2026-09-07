@@ -10,6 +10,10 @@ using Summaries.Application.Features.Users.Commands.UpdateProfile;
 using Summaries.Application.Features.Users.Commands.UploadAvatar;
 using Summaries.Application.Features.Users.Queries.GetCurrentUser;
 using Summaries.Application.Features.Users.Shared.DTOs;
+using Summaries.Application.Features.Users.Commands.EnableTwoFactor;
+using Summaries.Application.Features.Users.Commands.DisableTwoFactor;
+using Summaries.Application.Features.Users.Queries.GetTwoFactorStatus;
+using Summaries.API.Contracts.Auth;
 
 namespace Summaries.API.Controllers.V1;
 
@@ -106,6 +110,58 @@ public sealed class UsersController(ISender sender) : V1ControllerBase
             return Failure(result);
         }
 
+        return NoContent();
+    }
+
+    [HttpGet("me/two-factor")]
+    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTwoFactorStatus(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetTwoFactorStatusQuery(), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return Success(result.Value);
+    }
+
+    [HttpPost("me/two-factor/setup")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> BeginTwoFactorSetup(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new BeginTwoFactorSetupCommand(), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return Success(result.Value);
+    }
+
+    [HttpPost("me/two-factor/confirm")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmTwoFactorSetup(
+        [FromBody] ConfirmTwoFactorRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new ConfirmTwoFactorSetupCommand(request.Code), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
+    [HttpPost("me/two-factor/disable")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DisableTwoFactor(
+        [FromBody] DisableTwoFactorRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new DisableTwoFactorCommand(request.CurrentPassword), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
         return NoContent();
     }
 }

@@ -1,7 +1,3 @@
 namespace Summaries.API.Contracts.Auth;
 
-public sealed record RegisterRequest(
-    string FirstName,
-    string LastName,
-    string Email,
-    string Password);
+public sealed record RegisterRequest(string Email, string Password, string ConfirmEmailUrlBase);
