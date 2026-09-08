@@ -75,6 +75,10 @@ internal sealed class IdentityService(
         }
 
         var signInResult = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+        if (signInResult.IsLockedOut)
+        {
+            return new LoginOutcome.AccountLockedOut(user.LockoutEnd);
+        }
         if (!signInResult.Succeeded)
         {
             return new LoginOutcome.InvalidCredentials();
@@ -455,7 +459,7 @@ internal sealed class IdentityService(
 
         var isValid = await _userManager.VerifyTwoFactorTokenAsync(
             user, _userManager.Options.Tokens.AuthenticatorTokenProvider, code);
-
+        Console.WriteLine($"[2FA DEBUG] TOTP check for user {user.Email}, code '{code}' => {isValid}");
         if (!isValid)
         {
             return new LoginOutcome.InvalidCredentials();
@@ -481,5 +485,66 @@ internal sealed class IdentityService(
         const string issuer = "Summaries";
         return $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(email)}" +
             $"?secret={sharedKey}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
+    }
+
+    public async Task<LoginOutcome> LoginWithExternalProviderAsync(
+        string provider, string providerKey, string email, string displayName, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+
+        var user = await _userManager.FindByLoginAsync(provider, providerKey);
+        if (user is null)
+        {
+            user = await _userManager.FindByEmailAsync(normalizedEmail);
+            if (user is null)
+            {
+                var (firstName, lastName) = SplitDisplayName(displayName);
+                user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = normalizedEmail,
+                    Email = normalizedEmail,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    EmailConfirmed = true, // the provider already verified this email
+                    CreatedAtUtc = DateTime.UtcNow,
+                };
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    return new LoginOutcome.InvalidCredentials();
+                }
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+
+            var addLoginResult = await _userManager.AddLoginAsync(
+                user, new UserLoginInfo(provider, providerKey, provider));
+            if (!addLoginResult.Succeeded)
+            {
+                return new LoginOutcome.InvalidCredentials();
+            }
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email!, roles, []);
+        var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id, cancellationToken);
+        await StoreRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
+        var accessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
+        var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
+
+        var result = new AuthenticationResult(
+            user.Id, user.Email!, $"{user.FirstName} {user.LastName}".Trim(),
+            accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
+            roles.ToList(), user.AvatarUrl);
+
+        return new LoginOutcome.Success(result);
+    }
+
+    private static (string FirstName, string LastName) SplitDisplayName(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName)) return ("New", "User");
+        var parts = displayName.Trim().Split(' ', 2);
+        return parts.Length == 2 ? (parts[0], parts[1]) : (parts[0], "");
     }
 }

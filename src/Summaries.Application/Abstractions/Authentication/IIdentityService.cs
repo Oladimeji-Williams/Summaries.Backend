@@ -59,4 +59,7 @@ public interface IIdentityService
 
     Task<LoginOutcome> VerifyTwoFactorCodeAsync(
         string twoFactorToken, string code, CancellationToken cancellationToken);
+
+    Task<LoginOutcome> LoginWithExternalProviderAsync(
+        string provider, string providerKey, string email, string displayName, CancellationToken cancellationToken);
 }

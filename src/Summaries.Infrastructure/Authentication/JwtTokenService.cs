@@ -70,8 +70,10 @@ internal sealed class JwtTokenService : ITokenService
     public Guid? ValidateTwoFactorToken(string token)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-        var handler = new JwtSecurityTokenHandler();
-
+        var handler = new JwtSecurityTokenHandler
+        {
+            MapInboundClaims = false   // <-- add this
+        };
         try
         {
             var principal = handler.ValidateToken(token, new TokenValidationParameters
@@ -84,18 +86,19 @@ internal sealed class JwtTokenService : ITokenService
                 IssuerSigningKey = key,
                 ValidateLifetime = true,
             }, out _);
-
             var type = principal.FindFirstValue("type");
             if (type != TwoFactorTokenType)
             {
+                Console.WriteLine($"[2FA DEBUG] type claim mismatch: got '{type}'");
                 return null;
             }
-
             var sub = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            Console.WriteLine($"[2FA DEBUG] token OK, userId = {sub}");
             return Guid.TryParse(sub, out var userId) ? userId : null;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[2FA DEBUG] token validation threw: {ex.GetType().Name} - {ex.Message}");
             return null;
         }
     }

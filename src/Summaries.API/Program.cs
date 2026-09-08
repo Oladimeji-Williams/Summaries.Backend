@@ -5,6 +5,7 @@ using Summaries.Infrastructure;
 using Summaries.Persistence;
 using Summaries.Infrastructure.Identity;
 using Summaries.API.Common.Security;
+using Summaries.API.Common;
 
 DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
 
@@ -13,6 +14,8 @@ builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddMemoryCache();
+builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
 
 var app = builder.Build();
 

@@ -25,13 +25,27 @@ public sealed class LoginCommandHandler(
 
         return outcome switch
         {
-            LoginOutcome.Success success => await HandleSuccessAsync(success.Result, cancellationToken),
-            LoginOutcome.RequiresTwoFactor twoFactor => Result<AuthResultDto>.Success(
-                new AuthResultDto(
-                    "", "", default, default, Guid.Empty, "", "", [], null,
-                    RequiresTwoFactor: true, TwoFactorToken: twoFactor.TwoFactorToken)),
-            LoginOutcome.EmailNotConfirmed => Result<AuthResultDto>.Failure(AuthErrors.EmailNotConfirmed()),
-            _ => Result<AuthResultDto>.Failure(AuthErrors.InvalidCredentials()),
+            LoginOutcome.Success success =>
+                await HandleSuccessAsync(success.Result, cancellationToken),
+
+            LoginOutcome.RequiresTwoFactor twoFactor =>
+                Result<AuthResultDto>.Success(
+                    new AuthResultDto(
+                        "", "", default, default, Guid.Empty, "", "", [], null,
+                        RequiresTwoFactor: true,
+                        TwoFactorToken: twoFactor.TwoFactorToken)),
+
+            LoginOutcome.EmailNotConfirmed =>
+                Result<AuthResultDto>.Failure(
+                    AuthErrors.EmailNotConfirmed()),
+
+            LoginOutcome.AccountLockedOut lockedOut =>
+                Result<AuthResultDto>.Failure(
+                    AuthErrors.AccountLockedOut(lockedOut.LockoutEndUtc)),
+
+            _ =>
+                Result<AuthResultDto>.Failure(
+                    AuthErrors.InvalidCredentials()),
         };
     }
 

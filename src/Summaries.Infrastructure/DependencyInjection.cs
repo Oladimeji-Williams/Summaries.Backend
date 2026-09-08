@@ -24,6 +24,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<ExternalAuthOptions>(configuration.GetSection(ExternalAuthOptions.SectionName));
 
         services.AddDbContext<ApplicationIdentityDbContext>(options =>
             options.UseSqlServer(connectionString, sql =>
@@ -58,6 +59,7 @@ public static class DependencyInjection
         });
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<IImageValidator, ImageValidator>();
+        
 
         return services;
     }
