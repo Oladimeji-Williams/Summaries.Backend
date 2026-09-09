@@ -97,7 +97,6 @@ internal static class AuthenticationConfiguration
                 options.SignInScheme = IdentityConstants.ExternalScheme;
             });
         }
-
         services.AddAuthorization();
         return services;
     }
