@@ -125,6 +125,46 @@ namespace Summaries.Infrastructure.Identity.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Summaries.Infrastructure.Authentication.EmailSignInAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("ConsumedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FailedAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash");
+
+                    b.HasIndex("UserId", "ConsumedAtUtc");
+
+                    b.ToTable("EmailSignInAttempts", (string)null);
+                });
+
             modelBuilder.Entity("Summaries.Infrastructure.Authentication.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -223,6 +263,9 @@ namespace Summaries.Infrastructure.Identity.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EmailSignInEnabled")
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
@@ -330,6 +373,15 @@ namespace Summaries.Infrastructure.Identity.Migrations
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.HasOne("Summaries.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Summaries.Infrastructure.Authentication.EmailSignInAttempt", b =>
                 {
                     b.HasOne("Summaries.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -8,16 +9,19 @@ using Summaries.Application.Features.Authentication.Shared.Errors;
 using Summaries.Application.Features.Users.Shared.DTOs;
 using Summaries.Application.Features.Users.Shared.Errors;
 using Summaries.Infrastructure.Authentication;
+using Summaries.Application.Abstractions.Email;
+
 
 namespace Summaries.Infrastructure.Identity;
-
 internal sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     ITokenService tokenService,
     ApplicationIdentityDbContext dbContext,
     IOptions<JwtOptions> jwtOptions,
-    IFileStorageService fileStorage)
+    IFileStorageService fileStorage,
+    IEmailSender emailSender,
+    IOptions<Summaries.Application.Common.Options.FrontendOptions> frontendOptions)
     : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -26,6 +30,8 @@ internal sealed class IdentityService(
     private readonly ApplicationIdentityDbContext _dbContext = dbContext;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
     private readonly IFileStorageService _fileStorage = fileStorage;
+    private readonly IEmailSender _emailSender = emailSender;
+    private readonly string _frontendBaseUrl = frontendOptions.Value.BaseUrl;
 
     public async Task<Result<Guid>> RegisterAsync(
         string firstName, string lastName, string email, string password,
@@ -410,6 +416,8 @@ internal sealed class IdentityService(
         }
 
         await _userManager.SetTwoFactorEnabledAsync(user, true);
+        user.EmailSignInEnabled = false;   // <-- add this line
+        await _userManager.UpdateAsync(user);   // <-- and this line
         return Result.Success();
     }
 
@@ -546,5 +554,176 @@ internal sealed class IdentityService(
         if (string.IsNullOrWhiteSpace(displayName)) return ("New", "User");
         var parts = displayName.Trim().Split(' ', 2);
         return parts.Length == 2 ? (parts[0], parts[1]) : (parts[0], "");
+    }
+
+    public async Task<LoginStartOutcome> StartLoginAsync(string email, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null)
+        {
+            return new LoginStartOutcome.AccountNotFound();
+        }
+
+        if (!user.EmailSignInEnabled)
+        {
+            if (!await _userManager.HasPasswordAsync(user))
+            {
+                return new LoginStartOutcome.NoPasswordSet();
+            }
+            return new LoginStartOutcome.UsePassword();
+        }
+
+        var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .Replace('+', '-').Replace('/', '_').TrimEnd('=');
+
+        var attempt = new EmailSignInAttempt
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            CodeHash = SecurityTokenHasher.Hash(code),
+            TokenHash = SecurityTokenHasher.Hash(token),
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+        };
+        await _dbContext.EmailSignInAttempts.AddAsync(attempt, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var magicLink = $"{_frontendBaseUrl}/login/verify?token={Uri.EscapeDataString(token)}";
+        var sentAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(1));
+
+        try
+        {
+            await _emailSender.SendSignInCodeAsync(user.Email!, code, magicLink, sentAt, cancellationToken);
+        }
+        catch
+        {
+            _dbContext.EmailSignInAttempts.Remove(attempt);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return new LoginStartOutcome.EmailDeliveryFailed();
+        }
+
+        return new LoginStartOutcome.EmailCodeSent();
+    }
+
+    public async Task<LoginOutcome> CompleteEmailSignInWithCodeAsync(
+        string email, string code, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user is null)
+        {
+            return new LoginOutcome.InvalidCredentials();
+        }
+
+        var codeHash = SecurityTokenHasher.Hash(code.Trim());
+        var attempt = await _dbContext.EmailSignInAttempts
+            .Where(a => a.UserId == user.Id && a.ConsumedAtUtc == null)
+            .OrderByDescending(a => a.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (attempt is null || attempt.IsExpired || attempt.FailedAttempts >= 5)
+        {
+            return new LoginOutcome.InvalidCredentials();
+        }
+
+        if (attempt.CodeHash != codeHash)
+        {
+            attempt.FailedAttempts++;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return new LoginOutcome.InvalidCredentials();
+        }
+
+        attempt.ConsumedAtUtc = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new LoginOutcome.Success(await BuildAuthenticationResultAsync(user, cancellationToken));
+    }
+
+    public async Task<LoginOutcome> CompleteEmailSignInWithLinkAsync(string token, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var tokenHash = SecurityTokenHasher.Hash(token.Trim());
+
+        var attempt = await _dbContext.EmailSignInAttempts
+            .FirstOrDefaultAsync(a => a.TokenHash == tokenHash && a.ConsumedAtUtc == null, cancellationToken);
+
+        if (attempt is null || attempt.IsExpired)
+        {
+            return new LoginOutcome.InvalidCredentials();
+        }
+
+        var user = await _userManager.FindByIdAsync(attempt.UserId.ToString());
+        if (user is null)
+        {
+            return new LoginOutcome.InvalidCredentials();
+        }
+
+        attempt.ConsumedAtUtc = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new LoginOutcome.Success(await BuildAuthenticationResultAsync(user, cancellationToken));
+    }
+
+    public async Task<Result> EnableEmailSignInAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        user.EmailSignInEnabled = true;
+        await _userManager.SetTwoFactorEnabledAsync(user, false);
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+        return Result.Success();
+    }
+
+    public async Task<Result> DisableEmailSignInAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(UserErrors.NotFound(userId));
+        }
+
+        user.EmailSignInEnabled = false;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure(AuthErrors.RegistrationFailed(errors));
+        }
+        return Result.Success();
+    }
+
+    public async Task<bool> IsEmailSignInEnabledAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user?.EmailSignInEnabled ?? false;
+    }
+
+    private async Task<AuthenticationResult> BuildAuthenticationResultAsync(
+        ApplicationUser user, CancellationToken cancellationToken)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email!, roles, []);
+        var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id, cancellationToken);
+        await StoreRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
+        var accessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes);
+        var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
+
+        return new AuthenticationResult(
+            user.Id, user.Email!, $"{user.FirstName} {user.LastName}".Trim(),
+            accessToken, refreshToken, accessTokenExpiresAtUtc, refreshTokenExpiresAtUtc,
+            roles.ToList(), user.AvatarUrl);
     }
 }

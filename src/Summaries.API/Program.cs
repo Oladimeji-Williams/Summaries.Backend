@@ -16,6 +16,8 @@ builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMemoryCache();
 builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
+builder.Services.Configure<Summaries.Application.Common.Options.FrontendOptions>(
+    builder.Configuration.GetSection("Frontend"));
 
 var app = builder.Build();
 

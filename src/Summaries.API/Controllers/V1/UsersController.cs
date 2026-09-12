@@ -14,6 +14,9 @@ using Summaries.Application.Features.Users.Commands.EnableTwoFactor;
 using Summaries.Application.Features.Users.Commands.DisableTwoFactor;
 using Summaries.Application.Features.Users.Queries.GetTwoFactorStatus;
 using Summaries.API.Contracts.Auth;
+using Summaries.Application.Features.Users.Queries.GetEmailSignInStatus;
+using Summaries.Application.Features.Users.Commands.EnableEmailSignIn;
+using Summaries.Application.Features.Users.Commands.DisableEmailSignIn;
 
 namespace Summaries.API.Controllers.V1;
 
@@ -158,6 +161,42 @@ public sealed class UsersController(ISender sender) : V1ControllerBase
         [FromBody] DisableTwoFactorRequest request, CancellationToken cancellationToken)
     {
         var result = await sender.Send(new DisableTwoFactorCommand(request.CurrentPassword), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
+    [HttpGet("me/email-sign-in")]
+    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetEmailSignInStatus(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetEmailSignInStatusQuery(), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return Success(result.Value);
+    }
+
+    [HttpPost("me/email-sign-in/enable")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> EnableEmailSignIn(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new EnableEmailSignInCommand(), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
+    [HttpPost("me/email-sign-in/disable")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DisableEmailSignIn(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new DisableEmailSignInCommand(), cancellationToken);
         if (result.IsFailure)
         {
             return Failure(result);

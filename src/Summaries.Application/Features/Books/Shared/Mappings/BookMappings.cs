@@ -5,7 +5,7 @@ namespace Summaries.Application.Features.Books.Shared.Mappings;
 
 public static class BookMappings
 {
-    public static BookDto ToDto(this Book book, BookReadingRecord? record)
+    public static BookDto ToDto(this Book book, BookReadingRecord? record, bool isPurchased)
     {
         return new BookDto(
             book.Id,
@@ -19,6 +19,9 @@ public static class BookMappings
             book.PageCount,
             record is null
                 ? null
-                : new ReadingStatusDto(record.Status, record.Rating, record.DateStarted, record.DateRead));
+                : new ReadingStatusDto(record.Status, record.Rating, record.DateStarted, record.DateRead),
+            book.PriceKobo,
+            !string.IsNullOrEmpty(book.PdfUrl),
+            isPurchased);
     }
 }

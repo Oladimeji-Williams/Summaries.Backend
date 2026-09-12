@@ -6,7 +6,7 @@ internal static class EmailTemplates
     {
         var formattedDateTime = sentAt.ToString("dd MMMM yyyy, h:mm tt");
 
-        return $$"""
+        return EmailTheme.Apply($$"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -67,7 +67,7 @@ internal static class EmailTemplates
           </table>
         </body>
         </html>
-        """;
+        """);
     }
 
     public static string Notification(
@@ -89,7 +89,7 @@ internal static class EmailTemplates
             </tr>
             """;
 
-        return $$"""
+        return EmailTheme.Apply($$"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -131,14 +131,14 @@ internal static class EmailTemplates
           </table>
         </body>
         </html>
-        """;
+        """);
     }
 
     public static string EmailConfirmation(string confirmLink, string logoUrl, DateTimeOffset sentAt)
     {
         var formattedDateTime = sentAt.ToString("dd MMMM yyyy, h:mm tt");
 
-        return $$"""
+        return EmailTheme.Apply($$"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -198,6 +198,130 @@ internal static class EmailTemplates
           </table>
         </body>
         </html>
-        """;
+        """);
+    }
+
+    public static string BookDelivery(
+        string bookTitle, string pdfUrl, string logoUrl, DateTimeOffset sentAt)
+    {
+        var formattedDateTime = sentAt.ToString("dd MMMM yyyy, h:mm tt");
+
+        return EmailTheme.Apply($$"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Your book is ready</title>
+        </head>
+        <body style="margin:0; padding:0; background-color:#f1f5f9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; background-color:#f1f5f9;">
+            <tr>
+              <td align="center" style="padding:32px 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+                  <tr>
+                    <td align="center" style="padding:32px 32px 0 32px;">
+                      <img src="{{logoUrl}}" width="48" height="48" alt="Summaries" style="display:block; margin:0 auto; border-radius:10px;" />
+                      <div style="margin-top:12px; font-size:18px; line-height:24px; font-weight:700; color:#0f172a;">Summaries</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:24px 32px 8px 32px;">
+                      <h1 style="margin:0 0 12px 0; font-size:20px; line-height:28px; font-weight:700; color:#0f172a;">Your book is ready</h1>
+                      <p style="margin:0; font-size:14px; line-height:22px; color:#475569;">Here's your copy of <strong>{{bookTitle}}</strong>. Click below to download it.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:24px 32px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                        <tr>
+                          <td align="center" style="border-radius:8px; background-color:#4f46e5;">
+                            <a href="{{pdfUrl}}" style="display:inline-block; padding:14px 32px; font-size:15px; line-height:20px; font-weight:600; color:#ffffff; text-decoration:none;">Download PDF</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 32px;"><div style="border-top:1px solid #e2e8f0; height:1px; line-height:1px;"></div></td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:20px 32px 32px 32px;">
+                      <p style="margin:0; font-size:12px; line-height:18px; color:#94a3b8;">Keep this email for future reference — you can use this link to download your book again anytime.</p>
+                      <p style="margin:16px 0 0 0; font-size:11px; line-height:17px; color:#cbd5e1;">Sent on {{formattedDateTime}} WAT</p>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:20px 0 0 0; font-size:12px; line-height:18px; color:#94a3b8; text-align:center;">&copy; {{sentAt.Year}} Summaries</p>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        """);
+    }
+
+    public static string SignInCode(string code, string magicLink, string logoUrl, DateTimeOffset sentAt)
+    {
+        var formattedDateTime = sentAt.ToString("dd MMMM yyyy, h:mm tt");
+
+        return EmailTheme.Apply($$"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Sign in to Summaries</title>
+        </head>
+        <body style="margin:0; padding:0; background-color:#f1f5f9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; background-color:#f1f5f9;">
+            <tr>
+              <td align="center" style="padding:32px 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+                  <tr>
+                    <td align="center" style="padding:32px 32px 0 32px;">
+                      <img src="{{logoUrl}}" width="48" height="48" alt="Summaries" style="display:block; margin:0 auto; border-radius:10px;" />
+                      <div style="margin-top:12px; font-size:18px; line-height:24px; font-weight:700; color:#0f172a;">Summaries</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:24px 32px 8px 32px;">
+                      <h1 style="margin:0 0 12px 0; font-size:20px; line-height:28px; font-weight:700; color:#0f172a;">Sign in to Summaries</h1>
+                      <p style="margin:0; font-size:14px; line-height:22px; color:#475569;">Use the code below, or click the button to sign in instantly.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:20px 32px;">
+                      <div style="display:inline-block; padding:16px 28px; border-radius:10px; background-color:#f1f5f9; font-size:32px; font-weight:700; letter-spacing:8px; color:#0f172a;">{{code}}</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:8px 32px 24px 32px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                        <tr>
+                          <td align="center" style="border-radius:8px; background-color:#4f46e5;">
+                            <a href="{{magicLink}}" style="display:inline-block; padding:14px 32px; font-size:15px; line-height:20px; font-weight:600; color:#ffffff; text-decoration:none;">Sign in</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 32px;"><div style="border-top:1px solid #e2e8f0; height:1px; line-height:1px;"></div></td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:20px 32px 32px 32px;">
+                      <p style="margin:0; font-size:12px; line-height:18px; color:#94a3b8;">This code and link expire in 15 minutes. If you didn't request this, you can safely ignore this email.</p>
+                      <p style="margin:16px 0 0 0; font-size:11px; line-height:17px; color:#cbd5e1;">Sent on {{formattedDateTime}} WAT</p>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:20px 0 0 0; font-size:12px; line-height:18px; color:#94a3b8; text-align:center;">&copy; {{sentAt.Year}} Summaries</p>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        """);
     }
 }

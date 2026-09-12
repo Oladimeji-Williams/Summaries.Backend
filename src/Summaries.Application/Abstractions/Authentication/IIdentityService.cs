@@ -62,4 +62,11 @@ public interface IIdentityService
 
     Task<LoginOutcome> LoginWithExternalProviderAsync(
         string provider, string providerKey, string email, string displayName, CancellationToken cancellationToken);
+
+    Task<LoginStartOutcome> StartLoginAsync(string email, CancellationToken cancellationToken);
+    Task<LoginOutcome> CompleteEmailSignInWithCodeAsync(string email, string code, CancellationToken cancellationToken);
+    Task<LoginOutcome> CompleteEmailSignInWithLinkAsync(string token, CancellationToken cancellationToken);
+    Task<Result> EnableEmailSignInAsync(Guid userId, CancellationToken cancellationToken);
+    Task<Result> DisableEmailSignInAsync(Guid userId, CancellationToken cancellationToken);
+    Task<bool> IsEmailSignInEnabledAsync(Guid userId, CancellationToken cancellationToken);
 }

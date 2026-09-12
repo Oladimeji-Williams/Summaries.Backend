@@ -30,4 +30,6 @@ public static class AuthErrors
         "Auth.TwoFactorSetupFailed", details, ErrorType.Validation);
     public static Error AccountLockedOut(DateTimeOffset? until) => new(
         "Auth.AccountLockedOut", $"Account is locked until {until?.ToString("yyyy-MM-dd HH:mm:ss") ?? "unknown"}.", ErrorType.Unauthorized);
+    public static Error InvalidSignInCode() => new(
+        "Auth.InvalidSignInCode", "That code or link is invalid or has expired.", ErrorType.Unauthorized);
 }

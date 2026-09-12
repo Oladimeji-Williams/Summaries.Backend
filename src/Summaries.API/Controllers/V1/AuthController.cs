@@ -26,6 +26,9 @@ using Microsoft.Extensions.Options;
 using Summaries.API.Common;
 using Summaries.Application.Abstractions.Authentication;
 using Summaries.Application.Features.Authentication.Shared.Mappings;
+using Summaries.Application.Features.Authentication.Commands.StartLoginCommand;
+using Summaries.Application.Features.Authentication.Commands.CompleteEmailSignInWithCodeCommand;
+using Summaries.Application.Features.Authentication.Commands.CompleteEmailSignInWithLinkCommand;
 
 namespace Summaries.API.Controllers.V1;
 
@@ -275,4 +278,34 @@ public sealed class AuthController(ISender sender, IIdentityService identityServ
         _ => null,
     };
 
+    [HttpPost("login/start")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
+    public async Task<IActionResult> StartLogin([FromBody] StartLoginRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new StartLoginCommand(request.Email), cancellationToken);
+        if (result.IsFailure) return Failure(result);
+        return Success(result.Value);
+    }
+
+    [HttpPost("login/email-code")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicy)]
+    public async Task<IActionResult> CompleteEmailSignInWithCode(
+        [FromBody] CompleteEmailSignInWithCodeRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new CompleteEmailSignInWithCodeCommand(request.Email, request.Code), cancellationToken);
+        if (result.IsFailure) return Failure(result);
+        return Success(result.Value);
+    }
+
+    [HttpPost("login/email-link")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CompleteEmailSignInWithLink(
+        [FromBody] CompleteEmailSignInWithLinkRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new CompleteEmailSignInWithLinkCommand(request.Token), cancellationToken);
+        if (result.IsFailure) return Failure(result);
+        return Success(result.Value);
+    }
 }

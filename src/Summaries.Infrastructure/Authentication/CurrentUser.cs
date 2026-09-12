@@ -41,4 +41,12 @@ internal sealed class CurrentUser : ICurrentUser
                 : null;
         }
     }
+
+    public IReadOnlyCollection<string> Roles =>
+        _httpContextAccessor.HttpContext?
+            .User
+            .FindAll(ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList()
+        ?? [];
 }

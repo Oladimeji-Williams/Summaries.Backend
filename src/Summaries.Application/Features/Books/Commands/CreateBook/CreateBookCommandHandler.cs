@@ -32,6 +32,6 @@ public sealed class CreateBookCommandHandler(IBookRepository bookRepository)
 
         await bookRepository.AddAsync(book, cancellationToken);
 
-        return Result<BookDto>.Success(book.ToDto(null));
+        return Result<BookDto>.Success(book.ToDto(null, false));
     }
 }

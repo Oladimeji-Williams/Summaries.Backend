@@ -11,6 +11,7 @@ namespace Summaries.Application.Features.Books.Queries.GetBookByIdQuery;
 public sealed class GetBookByIdQueryHandler(
     IBookRepository bookRepository,
     IBookReadingRecordRepository readingRecordRepository,
+    IPurchaseRepository purchaseRepository,
     ICurrentUser currentUser)
     : IRequestHandler<GetBookByIdQuery, Result<BookDto>>
 {
@@ -26,6 +27,9 @@ public sealed class GetBookByIdQueryHandler(
             ? null
             : await readingRecordRepository.GetByUserAndBookAsync(currentUser.UserId.Value, request.Id, cancellationToken);
 
-        return Result<BookDto>.Success(book.ToDto(record));
+        var isPurchased = currentUser.UserId is not null &&
+            await purchaseRepository.GetSuccessfulForUserAndBookAsync(currentUser.UserId.Value, request.Id, cancellationToken) is not null;
+
+        return Result<BookDto>.Success(book.ToDto(record, isPurchased));
     }
 }

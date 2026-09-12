@@ -10,6 +10,7 @@ public sealed class ApplicationDbContext(
 {
     public DbSet<Book> Books => Set<Book>();
     public DbSet<BookReadingRecord> BookReadingRecords => Set<BookReadingRecord>();
+    public DbSet<Purchase> Purchases => Set<Purchase>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)

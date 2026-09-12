@@ -1,12 +1,15 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using System.Text.Json.Serialization;
 using Summaries.Application.Abstractions.Storage;
+
 
 namespace Summaries.Infrastructure.Storage;
 
 internal sealed class CloudinaryFileStorageService(Cloudinary cloudinary) : IFileStorageService
 {
     private const string Folder = "summaries/avatars";
+    private const string DocumentsFolder = "summaries/books/pdfs";
 
     public async Task<string> SaveAsync(
         Stream content, string fileName, string contentType, CancellationToken cancellationToken)
@@ -86,5 +89,50 @@ internal sealed class CloudinaryFileStorageService(Cloudinary cloudinary) : IFil
 
         var extensionIndex = afterUpload.LastIndexOf('.');
         return extensionIndex > 0 ? afterUpload[..extensionIndex] : afterUpload;
+    }
+
+    public async Task<string> SaveDocumentAsync(
+        Stream content, string fileName, string contentType, CancellationToken cancellationToken)
+    {
+        var publicId = Path.GetFileNameWithoutExtension(fileName);
+
+        var deletionParams = new DeletionParams($"{DocumentsFolder}/{publicId}") { ResourceType = ResourceType.Raw };
+        await cloudinary.DestroyAsync(deletionParams);
+
+        var uploadParams = new RawUploadParams
+        {
+            File = new FileDescription(fileName, content),
+            Folder = DocumentsFolder,
+            PublicId = publicId,
+            Overwrite = true,
+            UseFilename = false,
+        };
+
+        var result = await Task.Run(() => cloudinary.Upload(uploadParams), cancellationToken);
+
+        if (result.Error is not null)
+        {
+            throw new InvalidOperationException($"Cloudinary upload failed: {result.Error.Message}");
+        }
+
+        var url = result.SecureUrl?.ToString() ?? result.Url?.ToString();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            throw new InvalidOperationException("Cloudinary did not return a URL for the uploaded document.");
+        }
+
+        return url;
+    }
+
+    public async Task DeleteDocumentAsync(string secureUrl, CancellationToken cancellationToken)
+    {
+        var publicId = ExtractPublicId(secureUrl);
+        if (publicId is null)
+        {
+            return;
+        }
+
+        var deletionParams = new DeletionParams(publicId) { ResourceType = ResourceType.Raw };
+        await cloudinary.DestroyAsync(deletionParams);
     }
 }

@@ -63,6 +63,12 @@ namespace Summaries.Persistence.Migrations
                     b.Property<int?>("PageCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("PdfUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("PriceKobo")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("PublishedYear")
                         .HasColumnType("int");
 
@@ -127,6 +133,56 @@ namespace Summaries.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("BookReadingRecords", (string)null);
+                });
+
+            modelBuilder.Entity("Summaries.Domain.Entities.Purchase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("AmountKobo")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaystackReference")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaystackReference")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "BookId");
+
+                    b.ToTable("Purchases");
                 });
 
             modelBuilder.Entity("Summaries.Domain.Entities.BookReadingRecord", b =>

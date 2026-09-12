@@ -12,6 +12,8 @@ public sealed class Book : Entity
     public int? PublishedYear { get; private set; }
     public string? Genre { get; private set; }
     public int? PageCount { get; private set; }
+    public long? PriceKobo { get; private set; }
+    public string? PdfUrl { get; private set; }
 
     private Book() { }
 
@@ -39,5 +41,19 @@ public sealed class Book : Entity
         PublishedYear = publishedYear;
         Genre = genre;
         PageCount = pageCount;
+    }
+
+    public void SetPrice(long? priceKobo)
+    {
+        if (priceKobo is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(priceKobo), "Price cannot be negative.");
+        }
+        PriceKobo = priceKobo;
+    }
+
+    public void SetPdf(string? pdfUrl)
+    {
+        PdfUrl = pdfUrl;
     }
 }

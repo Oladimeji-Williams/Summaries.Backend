@@ -37,4 +37,15 @@ internal sealed class LocalFileStorageService(IWebHostEnvironment environment) :
         }
         return Task.CompletedTask;
     }
+
+    public Task<string> SaveDocumentAsync(
+        Stream content, string fileName, string contentType, CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException("Document storage is not supported by LocalFileStorageService.");
+    }
+
+    public Task DeleteDocumentAsync(string relativeUrl, CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException("Document storage is not supported by LocalFileStorageService.");
+    }
 }

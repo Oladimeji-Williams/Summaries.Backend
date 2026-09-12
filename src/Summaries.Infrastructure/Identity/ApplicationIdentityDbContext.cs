@@ -19,7 +19,8 @@ public sealed class ApplicationIdentityDbContext
 
     public DbSet<RefreshToken> RefreshTokens =>
         Set<RefreshToken>();
-
+    public DbSet<EmailSignInAttempt> EmailSignInAttempts => Set<EmailSignInAttempt>();
+    
     protected override void OnModelCreating(
         ModelBuilder builder)
     {

@@ -10,6 +10,9 @@ using Summaries.Infrastructure.Authentication;
 using Summaries.Infrastructure.Email;
 using Summaries.Infrastructure.Identity;
 using Summaries.Infrastructure.Storage;
+using Summaries.Infrastructure.Payments;
+using Summaries.Application.Abstractions.Payments;
+
 
 namespace Summaries.Infrastructure;
 
@@ -45,7 +48,7 @@ public static class DependencyInjection
             o.ApiToken = configuration["Email:ApiKey"]
                 ?? throw new InvalidOperationException("Email:ApiKey is not configured.");
         });
-        services.AddScoped<IEmailSender, ResendEmailSender>();
+        services.AddHttpClient<IEmailSender, ResendEmailSender>();
 
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.AddSingleton(sp =>
@@ -59,7 +62,14 @@ public static class DependencyInjection
         });
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<IImageValidator, ImageValidator>();
-        
+        services.Configure<PaystackOptions>(configuration.GetSection(PaystackOptions.SectionName));
+        services.AddHttpClient<IPaystackService, PaystackService>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.paystack.co/");
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer", configuration["Paystack:SecretKey"]);
+        });       
 
         return services;
     }

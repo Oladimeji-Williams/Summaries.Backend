@@ -11,6 +11,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
+    public bool EmailSignInEnabled { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 

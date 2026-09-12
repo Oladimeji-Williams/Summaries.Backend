@@ -13,6 +13,10 @@ using Summaries.Application.Features.Books.Queries.GetAllBooksQuery;
 using Summaries.Application.Features.Books.Queries.GetBookByIdQuery;
 using Summaries.Application.Features.Books.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using Summaries.Application.Features.Books.Commands.InitiatePurchaseCommand;
+using Summaries.Application.Features.Books.Commands.UpdateBookPriceCommand;
+using Summaries.Application.Features.Books.Commands.UploadBookPdfCommand;
+using Summaries.Application.Features.Books.Queries.GetBookDownloadUrlQuery;
 
 namespace Summaries.API.Controllers.V1;
 
@@ -189,5 +193,59 @@ public sealed class BooksController(
         }
 
         return NoContent();
+    }
+
+    [HttpPut("{id:int}/price")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateBookPrice(
+        int id, [FromBody] UpdateBookPriceRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new UpdateBookPriceCommand(id, request.PriceKobo), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/pdf")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [RequestSizeLimit(50_000_000)]
+    public async Task<IActionResult> UploadBookPdf(int id, IFormFile file, CancellationToken cancellationToken)
+    {
+        await using var stream = file.OpenReadStream();
+        var result = await _sender.Send(
+            new UploadBookPdfCommand(id, stream, file.FileName, file.ContentType), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/purchase")]
+    [ProducesResponseType(typeof(ApiResponse<InitiatePurchaseResultDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> PurchaseBook(int id, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new InitiatePurchaseCommand(id), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return Success(result.Value);
+    }
+
+    [HttpGet("{id:int}/download")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DownloadBook(int id, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetBookDownloadUrlQuery(id), cancellationToken);
+        if (result.IsFailure)
+        {
+            return Failure(result);
+        }
+        return Success(result.Value);
     }
 }

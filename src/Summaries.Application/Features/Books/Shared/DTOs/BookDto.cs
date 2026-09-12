@@ -12,7 +12,10 @@ public sealed record BookDto(
     int? PublishedYear,
     string? Genre,
     int? PageCount,
-    ReadingStatusDto? MyReadingStatus
+    ReadingStatusDto? MyReadingStatus,
+    long? PriceKobo,
+    bool HasPdf,
+    bool IsPurchased
 );
 
 public sealed record ReadingStatusDto(

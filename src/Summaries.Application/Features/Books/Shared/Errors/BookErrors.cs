@@ -15,4 +15,19 @@ public static class BookErrors
 
     public static Error NotInProgress() => new(
         "Books.NotInProgress", "Only a book that is in progress can be marked as read.", ErrorType.Conflict);
+
+    public static Error NotForSale() => new(
+        "Books.NotForSale", "This book does not have a price set.", ErrorType.Conflict);
+
+    public static Error AlreadyPurchased() => new(
+        "Books.AlreadyPurchased", "You already own this book.", ErrorType.Conflict);
+
+    public static Error NotPurchased() => new(
+        "Books.NotPurchased", "You need to purchase this book before downloading it.", ErrorType.Forbidden);
+
+    public static Error NoPdfAvailable() => new(
+        "Books.NoPdfAvailable", "This book does not have a PDF available yet.", ErrorType.NotFound);
+
+    public static Error PurchaseNotFound() => new(
+        "Books.PurchaseNotFound", "Purchase reference not found.", ErrorType.NotFound);
 }

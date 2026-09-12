@@ -13,4 +13,10 @@ public interface IEmailSender
 
     Task SendEmailConfirmationAsync(
         string toEmail, string confirmLink, DateTimeOffset sentAt, CancellationToken cancellationToken);
+
+    Task SendBookDeliveryAsync(
+        string toEmail, string bookTitle, string pdfUrl, DateTimeOffset sentAt, CancellationToken cancellationToken);
+
+    Task SendSignInCodeAsync(
+        string toEmail, string code, string magicLink, DateTimeOffset sentAt, CancellationToken cancellationToken);
 }
