@@ -1,11 +1,11 @@
 using Summaries.API;
 using Summaries.API.Cors;
 using Summaries.Application;
+using Summaries.Application.Common.Options;
 using Summaries.Infrastructure;
 using Summaries.Persistence;
 using Summaries.Infrastructure.Identity;
 using Summaries.API.Common.Security;
-using Summaries.API.Common;
 
 DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
 

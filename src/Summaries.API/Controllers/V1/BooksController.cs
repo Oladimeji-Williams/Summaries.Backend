@@ -39,9 +39,13 @@ public sealed class BooksController(
         typeof(ApiResponse<object>),
         StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateBook(
-        [FromBody] CreateBookCommand command,
+        [FromBody] CreateBookRequest request,
         CancellationToken cancellationToken)
     {
+        var command = new CreateBookCommand(
+            request.Title, request.Author, request.Description,
+            request.Isbn, request.Publisher, request.PublishedYear, request.Genre, request.PageCount);
+
         var result = await _sender.Send(
             command,
             cancellationToken);
