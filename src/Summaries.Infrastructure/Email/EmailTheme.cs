@@ -40,6 +40,11 @@ internal static class EmailTheme
                                 body > table table div,
                                 body > table table p { color:#f4f7fb !important; }
                                 body > table table p { color:#b8c2cf !important; }
+                                body > table table .verification-code span {
+                                    background-color:#1d2632 !important;
+                                    border-color:#3b4858 !important;
+                                    color:#f4f7fb !important;
+                                }
                                 body > table table a span { color:#ff8065 !important; }
                                 body > table table td[style*="border-top"] { border-color:#2c3745 !important; }
                             }

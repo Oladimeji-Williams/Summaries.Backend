@@ -264,6 +264,8 @@ internal static class EmailTemplates
     public static string SignInCode(string code, string magicLink, string logoUrl, DateTimeOffset sentAt)
     {
         var formattedDateTime = sentAt.ToString("dd MMMM yyyy, h:mm tt");
+      var codeBoxes = string.Concat(code.Select(digit =>
+        $"<span style=\"display:inline-block; width:34px; height:44px; margin:0 3px; border:1px solid #e2e8f0; border-radius:4px; background-color:#ffffff; font-size:26px; line-height:44px; font-weight:700; color:#0f172a; text-align:center; vertical-align:middle;\">{System.Net.WebUtility.HtmlEncode(digit.ToString())}</span>"));
 
         return EmailTheme.Apply($$"""
         <!DOCTYPE html>
@@ -292,7 +294,7 @@ internal static class EmailTemplates
                   </tr>
                   <tr>
                     <td align="center" style="padding:20px 32px;">
-                      <div style="display:inline-block; padding:16px 28px; border-radius:10px; background-color:#f1f5f9; font-size:32px; font-weight:700; letter-spacing:8px; color:#0f172a;">{{code}}</div>
+                      <div class="verification-code" role="img" aria-label="Your six digit sign-in code" style="white-space:nowrap;">{{codeBoxes}}</div>
                     </td>
                   </tr>
                   <tr>

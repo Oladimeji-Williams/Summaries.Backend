@@ -78,6 +78,12 @@ The dark theme is the default alternate mode for future client pages and is opt-
 
 Dark mode must preserve the same width, spacing, hierarchy, focus treatment, and interaction semantics as light mode. Switch colors through tokens rather than duplicating page-specific styles. Respect the user's system preference by default, and provide an explicit client-level theme setting when the frontend exists.
 
+## Login Code Interaction
+
+The API accepts the six-digit value as one string. The future client login screen must present six equal-width single-digit boxes, move focus forward after each digit, support paste of a six-digit value, allow backspace to move focus backward, and submit automatically as soon as the sixth digit is present. The confirm button should be removed from the primary flow or retained only as a disabled/loading fallback; it must not be required for normal completion.
+
+The email template already renders each delivered digit in its own fixed box. The email remains a display surface: users should enter the code in the client rather than attempting to edit the email.
+
 ## Future Frontend Contract
 
 When the client application is added to this workspace, it should expose the same tokens as CSS custom properties or the client framework's native token mechanism:
