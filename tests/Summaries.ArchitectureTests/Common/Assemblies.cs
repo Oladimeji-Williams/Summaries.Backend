@@ -1,27 +1,39 @@
-﻿using System.Reflection;
-
-using Summaries.API;
-using Summaries.Application;
-using Summaries.Domain;
-using Summaries.Infrastructure;
-using Summaries.Persistence;
+using System.Reflection;
 
 namespace Summaries.ArchitectureTests.Common;
 
 public static class Assemblies
 {
-    public static Assembly Domain =>
-        typeof(Summaries.Domain.Entities.Book).Assembly;
+    public static Assembly SharedKernel =>
+        typeof(Summaries.SharedKernel.Common.Primitives.Result).Assembly;
 
-    public static Assembly Application =>
-        typeof(Summaries.Application.Features.Books.Shared.DTOs.BookDto).Assembly;
+    public static Assembly SharedInfrastructure =>
+        typeof(Summaries.Shared.Infrastructure.DependencyInjection).Assembly;
 
-    public static Assembly Persistence =>
-        typeof(Summaries.Persistence.Context.ApplicationDbContext).Assembly;
+    public static Assembly Authentication =>
+        typeof(Summaries.Modules.Authentication.AssemblyMarker).Assembly;
 
-    public static Assembly Infrastructure =>
-        typeof(Summaries.Infrastructure.DependencyInjection).Assembly;
+    public static Assembly Books =>
+        typeof(Summaries.Modules.Books.AssemblyMarker).Assembly;
+
+    public static Assembly Payments =>
+        typeof(Summaries.Modules.Payments.AssemblyMarker).Assembly;
+
+    public static Assembly Users =>
+        typeof(Summaries.Modules.Users.AssemblyMarker).Assembly;
+
+    public static Assembly Admin =>
+        typeof(Summaries.Modules.Admin.AssemblyMarker).Assembly;
+
+    public static (string Name, Assembly Assembly)[] Modules =>
+    [
+        (nameof(Authentication), Authentication),
+        (nameof(Books), Books),
+        (nameof(Payments), Payments),
+        (nameof(Users), Users),
+        (nameof(Admin), Admin),
+    ];
 
     public static Assembly Api =>
-        typeof(Summaries.API.Controllers.V1.BooksController).Assembly;
+        typeof(Summaries.API.DependencyInjection).Assembly;
 }

@@ -25,10 +25,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Summaries.Domain\Summaries.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Summaries.Application\Summaries.Application.csproj" />
-    <ProjectReference Include="..\..\src\Summaries.Persistence\Summaries.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Summaries.Infrastructure\Summaries.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.SharedKernel\Summaries.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Shared.Infrastructure\Summaries.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Authentication\Summaries.Modules.Authentication.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Books\Summaries.Modules.Books.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Payments\Summaries.Modules.Payments.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Users\Summaries.Modules.Users.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Admin\Summaries.Modules.Admin.csproj" />
     <ProjectReference Include="..\..\src\Summaries.API\Summaries.API.csproj" />
   </ItemGroup>
 

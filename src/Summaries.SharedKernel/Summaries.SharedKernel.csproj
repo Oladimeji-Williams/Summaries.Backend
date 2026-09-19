@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <PackageId>Summaries.SharedKernel</PackageId>
+    <Version>1.0.0</Version>
+    <Description>The innermost, most stable layer: the Entity base type, Result/Error primitives, the MediatR validation pipeline behavior, port interfaces (Abstractions) implemented by each module's own Infrastructure/Persistence, and Contracts — small read-only DTOs/errors one module exposes for another to consume without a direct project reference. Depends on nothing else in the solution.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

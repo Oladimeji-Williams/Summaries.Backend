@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Summaries.Persistence\Summaries.Persistence.csproj" />
-    <ProjectReference Include="..\..\src\Summaries.Infrastructure\Summaries.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.SharedKernel\Summaries.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Shared.Infrastructure\Summaries.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Authentication\Summaries.Modules.Authentication.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Books\Summaries.Modules.Books.csproj" />
+    <ProjectReference Include="..\..\src\Summaries.Modules.Payments\Summaries.Modules.Payments.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" />

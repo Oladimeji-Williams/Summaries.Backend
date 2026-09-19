@@ -19,9 +19,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Summaries.Application\Summaries.Application.csproj" />
-    <ProjectReference Include="..\Summaries.Infrastructure\Summaries.Infrastructure.csproj" />
-    <ProjectReference Include="..\Summaries.Persistence\Summaries.Persistence.csproj" />
+    <ProjectReference Include="..\Summaries.SharedKernel\Summaries.SharedKernel.csproj" />
+    <ProjectReference Include="..\Summaries.Shared.Infrastructure\Summaries.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\Summaries.Modules.Authentication\Summaries.Modules.Authentication.csproj" />
+    <ProjectReference Include="..\Summaries.Modules.Books\Summaries.Modules.Books.csproj" />
+    <ProjectReference Include="..\Summaries.Modules.Payments\Summaries.Modules.Payments.csproj" />
+    <ProjectReference Include="..\Summaries.Modules.Users\Summaries.Modules.Users.csproj" />
+    <ProjectReference Include="..\Summaries.Modules.Admin\Summaries.Modules.Admin.csproj" />
   </ItemGroup>
 
 </Project>

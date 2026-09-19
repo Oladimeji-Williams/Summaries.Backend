@@ -1,0 +1,18 @@
+using Summaries.SharedKernel.Common.Primitives;
+
+namespace Summaries.SharedKernel.Contracts.Users;
+
+public static class UserErrors
+{
+    public static Error NotAuthenticated() => new(
+        "Users.NotAuthenticated", "You must be logged in.", ErrorType.Unauthorized);
+
+    public static Error NotFound(Guid id) => new(
+        "Users.NotFound", $"User with ID '{id}' was not found.", ErrorType.NotFound);
+
+    public static Error UpdateFailed(string details) => new(
+        "Users.UpdateFailed", details, ErrorType.Validation);
+
+    public static Error InvalidFile(string details) => new(
+        "Users.InvalidFile", details, ErrorType.Validation);
+}

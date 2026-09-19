@@ -1,6 +1,7 @@
+using System.Reflection;
+
 using Summaries.API.Common.RateLimiting;
-using Summaries.API.Common.Urls;
-using Summaries.API.Controllers;
+using Summaries.Shared.Infrastructure.Api;
 using Summaries.API.Cors;
 using Summaries.API.Versioning;
 
@@ -10,18 +11,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApiServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        params Assembly[] moduleControllerAssemblies)
     {
-        services.AddApiControllers();
+        services.AddApiControllers(moduleControllerAssemblies);
         services.AddApiVersioningSetup();
         services.AddOpenApi();
         services.AddApiCors(configuration);
         services.AddApiRateLimiting();
-        services.AddHttpContextAccessor();
 
         services.AddSingleton(TimeProvider.System);
-
-        services.AddScoped<IUrlBuilder, UrlBuilder>();
 
         return services;
     }

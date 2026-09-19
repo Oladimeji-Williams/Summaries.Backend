@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Summaries.Infrastructure.Identity;
+using Summaries.Modules.Authentication.Infrastructure.Identity;
 
 namespace Summaries.DatabaseSeeder.SeedData;
 

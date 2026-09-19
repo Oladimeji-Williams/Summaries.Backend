@@ -1,0 +1,25 @@
+
+using Summaries.SharedKernel.Contracts.Books;
+namespace Summaries.Modules.Books.Application.DTOs;
+
+public sealed record BookDto(
+    int Id,
+    string Title,
+    string Author,
+    string Description,
+    string? Isbn,
+    string? Publisher,
+    int? PublishedYear,
+    string? Genre,
+    int? PageCount,
+    ReadingStatusDto? MyReadingStatus,
+    long? PriceKobo,
+    bool HasPdf,
+    bool IsPurchased
+);
+
+public sealed record ReadingStatusDto(
+    BookStatus Status,
+    decimal? Rating,
+    DateTimeOffset? DateStarted,
+    DateTimeOffset? DateRead);
