@@ -1,18 +1,26 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Summaries.API/Summaries.API.csproj" />
-    <Project Path="src/Summaries.Application/Summaries.Application.csproj" />
-    <Project Path="src/Summaries.Domain/Summaries.Domain.csproj" />
-    <Project Path="src/Summaries.Infrastructure/Summaries.Infrastructure.csproj" />
-    <Project Path="src/Summaries.Persistence/Summaries.Persistence.csproj" />
+    <Project Path="src/Summaries.SharedKernel/Summaries.SharedKernel.csproj" />
+    <Project Path="src/Summaries.Shared.Infrastructure/Summaries.Shared.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Summaries.Modules.Authentication/Summaries.Modules.Authentication.csproj" />
+    <Project Path="src/Summaries.Modules.Books/Summaries.Modules.Books.csproj" />
+    <Project Path="src/Summaries.Modules.Payments/Summaries.Modules.Payments.csproj" />
+    <Project Path="src/Summaries.Modules.Users/Summaries.Modules.Users.csproj" />
+    <Project Path="src/Summaries.Modules.Admin/Summaries.Modules.Admin.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Summaries.API.IntegrationTests/Summaries.API.IntegrationTests.csproj" />
-    <Project Path="tests/Summaries.Application.UnitTests/Summaries.Application.UnitTests.csproj" />
     <Project Path="tests/Summaries.ArchitectureTests/Summaries.ArchitectureTests.csproj" />
-    <Project Path="tests/Summaries.Domain.UnitTests/Summaries.Domain.UnitTests.csproj" />
-    <Project Path="tests/Summaries.Infrastructure.IntegrationTests/Summaries.Infrastructure.IntegrationTests.csproj" />
-    <Project Path="tests/Summaries.Persistence.IntegrationTests/Summaries.Persistence.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Summaries.Modules.Authentication.UnitTests/Summaries.Modules.Authentication.UnitTests.csproj" />
+    <Project Path="tests/Summaries.Modules.Books.UnitTests/Summaries.Modules.Books.UnitTests.csproj" />
+    <Project Path="tests/Summaries.Modules.Payments.UnitTests/Summaries.Modules.Payments.UnitTests.csproj" />
+    <Project Path="tests/Summaries.Modules.Users.UnitTests/Summaries.Modules.Users.UnitTests.csproj" />
+    <Project Path="tests/Summaries.Modules.Admin.UnitTests/Summaries.Modules.Admin.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Summaries.DatabaseSeeder/Summaries.DatabaseSeeder.csproj" />

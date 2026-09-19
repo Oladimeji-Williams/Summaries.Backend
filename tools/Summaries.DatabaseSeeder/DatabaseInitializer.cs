@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Summaries.DatabaseSeeder.SeedData;
-using Summaries.Infrastructure.Identity;
-using Summaries.Persistence.Context;
+using Summaries.Modules.Authentication.Infrastructure.Identity;
+using Summaries.Modules.Authentication.Persistence;
+using Summaries.Modules.Books.Persistence;
+using Summaries.Modules.Payments.Persistence;
 
 namespace Summaries.DatabaseSeeder;
 
@@ -16,16 +18,23 @@ public static class DatabaseInitializer
     {
         using var scope = services.CreateScope();
 
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var booksDbContext = scope.ServiceProvider.GetRequiredService<BooksDbContext>();
+        var paymentsDbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var identityDbContext = scope.ServiceProvider.GetRequiredService<ApplicationIdentityDbContext>();
 
-        Console.WriteLine("Deleting database...");
-        await dbContext.Database.EnsureDeletedAsync(cancellationToken);
-        Console.WriteLine("Database deleted.");
+        Console.WriteLine("Deleting databases...");
+        await booksDbContext.Database.EnsureDeletedAsync(cancellationToken);
+        await paymentsDbContext.Database.EnsureDeletedAsync(cancellationToken);
+        await identityDbContext.Database.EnsureDeletedAsync(cancellationToken);
+        Console.WriteLine("Databases deleted.");
 
         Console.WriteLine("Applying Books migrations...");
-        await dbContext.Database.MigrateAsync(cancellationToken);
+        await booksDbContext.Database.MigrateAsync(cancellationToken);
         Console.WriteLine("Books migrations applied.");
+
+        Console.WriteLine("Applying Payments migrations...");
+        await paymentsDbContext.Database.MigrateAsync(cancellationToken);
+        Console.WriteLine("Payments migrations applied.");
 
         Console.WriteLine("Applying Identity migrations...");
         await identityDbContext.Database.MigrateAsync(cancellationToken);
@@ -46,11 +55,11 @@ public static class DatabaseInitializer
         Console.WriteLine($"Admin user seeded ({adminUser.Email}).");
 
         Console.WriteLine("Seeding books...");
-        await BookSeedData.SeedAsync(dbContext, cancellationToken);
+        await BookSeedData.SeedAsync(booksDbContext, cancellationToken);
         Console.WriteLine("Books seeded.");
 
         Console.WriteLine("Seeding reading records...");
-        await BookReadingRecordSeedData.SeedAsync(dbContext, testUser.Id, cancellationToken);
+        await BookReadingRecordSeedData.SeedAsync(booksDbContext, testUser.Id, cancellationToken);
         Console.WriteLine("Reading records seeded.");
     }
 }

@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using Summaries.Domain.Entities;
-using Summaries.Persistence.Context;
+using Summaries.Modules.Books.Persistence;
 
+using Summaries.Modules.Books.Domain.Entities;
 namespace Summaries.DatabaseSeeder.SeedData;
 
 public static class BookReadingRecordSeedData
 {
     public static async Task SeedAsync(
-        ApplicationDbContext dbContext,
+        BooksDbContext dbContext,
         Guid userId,
         CancellationToken cancellationToken = default)
     {

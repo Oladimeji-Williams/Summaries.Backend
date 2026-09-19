@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <PackageId>Summaries.Modules.Admin</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Admin feature module: cross-cutting reporting over users and books. Has no persistence of its own — reads through IIdentityService and the Books module's IBookCatalog/IBookReadingHistory contracts. Depends only on SharedKernel and Shared.Infrastructure.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Summaries.SharedKernel\Summaries.SharedKernel.csproj" />
+    <ProjectReference Include="..\Summaries.Shared.Infrastructure\Summaries.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

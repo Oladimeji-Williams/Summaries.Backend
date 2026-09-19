@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Summaries.DatabaseSeeder;
-using Summaries.Infrastructure;
-using Summaries.Persistence;
+using Summaries.Shared.Infrastructure;
+using Summaries.Modules.Authentication;
+using Summaries.Modules.Books;
+using Summaries.Modules.Payments;
 
 var backendRoot = Path.GetFullPath(
     Path.Combine(
@@ -19,8 +21,10 @@ var configuration =
         .Build();
 
 var services = new ServiceCollection();
-services.AddPersistence(configuration);
-services.AddInfrastructure(configuration);
+services.AddSharedInfrastructure(configuration);
+services.AddAuthenticationModule(configuration);
+services.AddBooksModule(configuration);
+services.AddPaymentsModule(configuration);
 
 await using var serviceProvider = services.BuildServiceProvider();
 await DatabaseInitializer.InitializeAsync(serviceProvider);
